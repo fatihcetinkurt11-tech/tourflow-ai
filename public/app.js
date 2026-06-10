@@ -1,0 +1,1327 @@
+const app = document.querySelector("#app");
+
+let plannerResult = null;
+let adminAssistantResult = null;
+let tours = [];
+let participants = [];
+let deposits = [];
+let leads = [];
+let summary = null;
+let costRules = [];
+
+const leadConvertEndpoint = (leadId) => `/api/leads/${leadId}/convert`;
+
+const defaultClientCostRules = [
+  { key: "vehicle", label: "Araç", type: "fm_vip_vehicle", unit: "km", unitPrice: 10 },
+  { key: "guide", label: "Rehber", type: "fixed", unit: "tur", unitPrice: 6000 },
+  { key: "insurance", label: "Sigorta", type: "per_person", unit: "kişi", unitPrice: 75 },
+  { key: "photographer", label: "Fotoğrafçı", type: "fixed", unit: "tur", unitPrice: 0 },
+  { key: "boat", label: "Tekne", type: "boat", unit: "tur/kişi", unitPrice: 0 },
+  { key: "hotel", label: "Otel", type: "manual", unit: "manuel", unitPrice: 0 },
+  { key: "other", label: "Diğer", type: "manual", unit: "manuel", unitPrice: 0 }
+];
+
+function money(value) {
+  return `${Number(value || 0).toLocaleString("tr-TR")} TL`;
+}
+
+function escapeHtml(value) {
+  return String(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+async function api(path, options) {
+  const response = await fetch(path, {
+    headers: { "Content-Type": "application/json" },
+    ...options
+  });
+  if (!response.ok) {
+    const payload = await response.json().catch(() => ({}));
+    throw new Error(payload.error || "Istek tamamlanamadi");
+  }
+  return response.json();
+}
+
+function buildClientPlan(data) {
+  const destination = String(data.destination || "Trabzon").trim();
+  const groupSize = Math.max(1, Number(data.groupSize || 2));
+  const durationDays = Math.max(1, Number(data.durationDays || 4));
+  const budget = Math.max(1000, Number(data.budget || 9000));
+  const key = destination.toLocaleLowerCase("tr-TR");
+  const profiles = [
+    {
+      terms: ["trabzon"],
+      style: "Karadeniz doga ve yayla rotasi",
+      places: ["Sumela Manastiri", "Uzungol", "Ataturk Kosku", "Cal Magarasi", "Boztepe", "Hidirnebi Yaylasi"],
+      accommodation: "Trabzon merkez ve Uzungol/yayla hattinda kahvalti dahil butik konaklama onerilir.",
+      transport: "Havalimani transferi ve yayla yollari icin soforlu ozel arac onerilir.",
+      costs: { daily: 2350, activity: 700, guide: 3800, margin: 1.22 }
+    },
+    {
+      terms: ["kapadokya", "cappadocia"],
+      style: "vadi, balon ve kultur rotasi",
+      places: ["Goreme Acik Hava Muzesi", "Pasabag", "Avanos", "Uchisar Kalesi", "Kizil Vadi", "Derinkuyu Yeralti Sehri"],
+      accommodation: "Goreme, Uchisar veya Ortahisar'da tas otel onerilir.",
+      transport: "Kayseri/Nevsehir transferi ve vadiler arasi ozel arac onerilir.",
+      costs: { daily: 2650, activity: 1250, guide: 4200, margin: 1.24 }
+    },
+    {
+      terms: ["halfeti"],
+      style: "Firat kiyisi ve tekne rotasi",
+      places: ["Savasan Koyu", "Rumkale", "Halfeti Tekne Turu", "Firat Nehri", "Eski Halfeti Sokaklari", "Birecik Kelaynak Merkezi"],
+      accommodation: "Halfeti veya Sanliurfa merkezde butik otel onerilir.",
+      transport: "Gaziantep/Sanliurfa cikisli ozel arac ve Halfeti tekne turu onerilir.",
+      costs: { daily: 1900, activity: 650, guide: 3200, margin: 1.21 }
+    },
+    {
+      terms: ["arsuz"],
+      style: "Akdeniz sahil ve gastronomi rotasi",
+      places: ["Arsuz Sahili", "Madenli Koyu", "Karaagac Plaji", "Iskenderun Sahili", "Titus Tuneli", "Besikli Magara"],
+      accommodation: "Arsuz sahil hattinda denize yakin butik otel veya apart onerilir.",
+      transport: "Hatay/Adana baglantili transfer ve sahil duraklari icin ozel arac onerilir.",
+      costs: { daily: 2050, activity: 500, guide: 3000, margin: 1.2 }
+    }
+  ];
+  const profile = profiles.find((item) => item.terms.some((term) => key.includes(term))) || {
+    style: `${destination} kesif rotasi`,
+    places: [`${destination} merkez`, `${destination} tarihi bolge`, `${destination} manzara noktasi`, `${destination} yerel pazar`, `${destination} doga rotasi`],
+    accommodation: `${destination} merkezde ulasimi kolay, kahvalti dahil butik veya 3-4 yildizli otel onerilir.`,
+    transport: `${destination} icin transfer, sehir ici ozel arac ve esnek mola plani onerilir.`,
+    costs: { daily: 1950, activity: 550, guide: 3200, margin: 1.21 }
+  };
+  const guideRequired = groupSize >= 8 || durationDays >= 3;
+  const rawOutboundKm = data.outboundKm ?? data.outbound_km;
+  const rawReturnKm = data.returnKm ?? data.return_km;
+  const hasDistance = rawOutboundKm !== undefined && rawOutboundKm !== "" && rawReturnKm !== undefined && rawReturnKm !== "";
+  const outboundKm = hasDistance ? Math.max(0, Number(rawOutboundKm || 0)) : null;
+  const returnKm = hasDistance ? Math.max(0, Number(rawReturnKm || 0)) : null;
+  const routeKm = hasDistance ? outboundKm + 10 + returnKm : 0;
+  const distanceWarning = "Kilometre bilgisi eksik, lütfen Google Maps üzerinden gidiş ve dönüş km girin.";
+  const costItems = [
+    { key: "vehicle", label: "Araç", type: "fm_vip_vehicle", quantity: routeKm, unit: "km formülü", unitPrice: 30, total: hasDistance ? routeKm * 30 : 0, formula: hasDistance ? `(${outboundKm} + 10 + ${returnKm}) x 10 x 3` : "Kilometre bilgisi eksik", warning: hasDistance ? "" : distanceWarning },
+    { key: "guide", label: "Rehber", type: "fixed", quantity: 1, unit: "tur", unitPrice: 6000, total: 6000 },
+    { key: "insurance", label: "Sigorta", type: "per_person", quantity: groupSize, unit: "kişi", unitPrice: 75, total: groupSize * 75 },
+    { key: "boat", label: "Tekne", type: "fixed", quantity: key.includes("halfeti") ? 1 : 0, unit: "tur", unitPrice: key.includes("halfeti") ? 4500 : 0, total: key.includes("halfeti") ? 4500 : 0 },
+    { key: "hotel", label: "Otel", type: "manual", quantity: 0, unit: "manuel", unitPrice: 0, total: 0 },
+    { key: "other", label: "Diğer", type: "manual", quantity: 1, unit: "manuel", unitPrice: groupSize * profile.costs.activity, total: groupSize * profile.costs.activity }
+  ];
+  const baseCost = costItems.reduce((sum, item) => sum + item.total, 0);
+  const salesTotal = Math.round(baseCost * profile.costs.margin);
+  const pricePerPerson = Math.ceil(salesTotal / groupSize / 50) * 50;
+  const costPerPerson = Math.ceil(baseCost / groupSize / 50) * 50;
+
+  return {
+    destination,
+    groupSize,
+    durationDays,
+    budget,
+    title: `${destination} ${durationDays} Gunluk ${profile.style}`,
+    plan: Array.from({ length: durationDays }, (_, index) => {
+      const primary = profile.places[index % profile.places.length];
+      const secondary = profile.places[(index + 1) % profile.places.length];
+      if (index === 0) return `1. gun: ${destination} varis, ${primary}, yerel lezzet molasi ve rahat tempo.`;
+      if (index === durationDays - 1) return `${index + 1}. gun: ${primary}, ${secondary} ve donus hazirligi.`;
+      return `${index + 1}. gun: ${primary}, ${secondary}, fotograf molalari ve serbest zaman.`;
+    }),
+    places: profile.places,
+    estimatedCost: { baseCost, costPerPerson, profit: salesTotal - baseCost, netProfit: salesTotal - baseCost, salesTotal, pricePerPerson },
+    costItems,
+    distance: { outboundKm, returnKm, routeKm: hasDistance ? routeKm : null, missing: !hasDistance, warning: hasDistance ? "" : distanceWarning },
+    accommodation: profile.accommodation,
+    transport: profile.transport,
+    guideRequired
+  };
+}
+
+function parseClientTripMessage(message) {
+  const text = String(message || "").trim();
+  const lower = text.toLocaleLowerCase("tr-TR");
+  const originMatch = text.match(/^(.{2,60}?)\s*(?:çıkışlı|cikisli|çıkış|cikis|Ã§Ä±k|Ã§ikis)/i);
+  const peopleMatch = lower.match(/(\d+)\s*(?:kişilik|kisilik|kişi|kisi)/);
+  const dayMatch = lower.match(/(\d+)\s*(?:günlük|gunluk|gün|gun)/);
+  const known = ["Trabzon", "Kapadokya", "Halfeti", "Arsuz", "Rize", "Mardin", "Antalya"];
+  const destination = known.find((item) => lower.includes(item.toLocaleLowerCase("tr-TR"))) || "Yeni Rota";
+  return {
+    message: text,
+    origin: originMatch ? originMatch[1].trim() : "",
+    destination,
+    groupSize: Number(peopleMatch?.[1] || 2),
+    durationDays: lower.includes("günübirlik") || lower.includes("gunubirlik") || lower.includes("birlik") ? 1 : Number(dayMatch?.[1] || 3),
+    budget: 9000
+  };
+}
+
+function buildClientAssistantPlan(message) {
+  const parsed = parseClientTripMessage(message);
+  const plan = buildClientPlan(parsed);
+  return {
+    ...plan,
+    origin: parsed.origin,
+    sourceMessage: parsed.message,
+    assistantSummary: `${parsed.origin ? `${parsed.origin} çıkışlı ` : ""}${plan.groupSize} kişilik ${plan.destination} tur taslağı hazırlandı.`,
+    whatsappMessage: `Merhaba, ${parsed.origin ? `${parsed.origin} çıkışlı ` : ""}${plan.destination} turu için program hazır. Rotada ${plan.places.slice(0, 4).join(", ")} var. Kişi başı tahmini ücret ${money(plan.estimatedCost.pricePerPerson)}.`,
+    depositMessage: `Rezervasyonu netleştirmek için kişi başı ${money(Math.min(3000, Math.round(plan.estimatedCost.pricePerPerson * 0.3)))} kapora ile ulaşım ve konaklama opsiyonunu sabitleyebiliriz.`
+  };
+}
+
+function costRows(items = []) {
+  return `
+    <div class="table-wrap">
+      <table class="table cost-table">
+        <thead><tr><th>Kalem</th><th>Miktar</th><th>Birim</th><th>Birim fiyat</th><th>Toplam</th></tr></thead>
+        <tbody>${items.map((item) => `
+          <tr>
+            <td>${escapeHtml(item.label)}</td>
+            <td>${escapeHtml(item.formula || Number(item.quantity || 0).toLocaleString("tr-TR"))}</td>
+            <td>${escapeHtml(item.unit || "")}</td>
+            <td>${money(item.unitPrice)}</td>
+            <td><strong>${money(item.total)}</strong>${item.warning ? `<br><span class="warning-text">${escapeHtml(item.warning)}</span>` : ""}</td>
+          </tr>
+        `).join("")}</tbody>
+      </table>
+    </div>
+  `;
+}
+
+function getLocalLeads() {
+  return JSON.parse(localStorage.getItem("tourflowLocalLeads") || "[]");
+}
+
+function saveLocalLead(data, plan) {
+  const lead = {
+    id: `local-${Date.now()}`,
+    destination: data.destination,
+    groupSize: Number(data.groupSize),
+    durationDays: Number(data.durationDays),
+    budget: Number(data.budget),
+    name: data.name,
+    phone: data.phone,
+    email: data.email,
+    status: "Yeni",
+    createdAt: new Date().toISOString(),
+    plan
+  };
+  localStorage.setItem("tourflowLocalLeads", JSON.stringify([lead, ...getLocalLeads()]));
+  return lead;
+}
+
+function payload(form) {
+  return Object.fromEntries(new FormData(form).entries());
+}
+
+function navigate(pathname) {
+  history.pushState({}, "", pathname);
+  render();
+}
+
+function plannerResultHtml(result) {
+  return `
+    <section class="planner-result" id="planner-result">
+      <div class="result-grid">
+        <section class="panel">
+          <div class="panel-header">
+            <h2>${escapeHtml(result.title)}</h2>
+            <span class="badge green">${result.durationDays} gün · ${result.groupSize} kişi</span>
+          </div>
+          <div class="item-list">
+            <article class="item">
+              <h3>Gezi planı</h3>
+              <ol class="program">${result.plan.map((day) => `<li>${escapeHtml(day)}</li>`).join("")}</ol>
+            </article>
+            <article class="item">
+              <h3>Gezilecek yerler</h3>
+              <div class="places">${result.places.map((place) => `<span class="badge sky">${escapeHtml(place)}</span>`).join("")}</div>
+            </article>
+            <div class="three-grid">
+              <div class="metric"><span>Tahmini maliyet</span><strong>${money(result.estimatedCost.salesTotal)}</strong></div>
+              <div class="metric"><span>Kişi başı maliyet</span><strong>${money(result.estimatedCost.costPerPerson)}</strong></div>
+              <div class="metric"><span>Kişi başı</span><strong>${money(result.estimatedCost.pricePerPerson)}</strong></div>
+            </div>
+            <article class="item"><h3>Maliyet kalemleri</h3>${costRows(result.costItems)}</article>
+            <article class="item"><h3>Konaklama önerileri</h3><p>${escapeHtml(result.accommodation)}</p></article>
+            <article class="item"><h3>Ulaşım önerileri</h3><p>${escapeHtml(result.transport)}</p></article>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-header"><h2>FM Travel ile organize edelim</h2></div>
+          <form class="form" id="lead-form">
+            <p class="lead">Bu geziyi FM Travel ile organize etmek ister misiniz?</p>
+            <input type="hidden" name="destination" value="${escapeHtml(result.destination)}" />
+            <input type="hidden" name="groupSize" value="${result.groupSize}" />
+            <input type="hidden" name="durationDays" value="${result.durationDays}" />
+            <input type="hidden" name="budget" value="${result.budget}" />
+            <label>Ad soyad <input name="name" required /></label>
+            <label>Telefon <input name="phone" required /></label>
+            <label>E-posta <input name="email" type="email" required /></label>
+            <button class="btn" type="submit">Bu geziyi FM Travel ile organize etmek ister misiniz?</button>
+            <p class="muted" id="lead-status"></p>
+          </form>
+        </section>
+      </div>
+    </section>
+  `;
+}
+
+function aiResultHtml(result) {
+  return `
+    <section class="panel ai-result-card">
+      <div class="panel-header">
+        <h2>AI tur taslağı</h2>
+        <span class="badge green">${escapeHtml(result.destination)} · ${result.groupSize} kişi</span>
+      </div>
+      <div class="item-list">
+        <p class="lead">${escapeHtml(result.assistantSummary || result.title)}</p>
+        <div class="three-grid">
+          <div class="metric"><span>Maliyet</span><strong>${money(result.estimatedCost.salesTotal)}</strong></div>
+          <div class="metric"><span>Kişi başı maliyet</span><strong>${money(result.estimatedCost.costPerPerson)}</strong></div>
+          <div class="metric"><span>Kâr</span><strong>${money(result.estimatedCost.profit)}</strong></div>
+        </div>
+        <article class="item"><h3>Maliyet kalemleri</h3>${costRows(result.costItems)}</article>
+        <article class="item"><h3>Program</h3><ol class="program">${result.plan.map((day) => `<li>${escapeHtml(day)}</li>`).join("")}</ol></article>
+        <article class="item"><h3>WhatsApp tanıtım metni</h3><div class="copy-box">${escapeHtml(result.whatsappMessage || "")}</div></article>
+        <article class="item"><h3>Kapora mesajı</h3><div class="copy-box">${escapeHtml(result.depositMessage || "")}</div></article>
+        ${result.distance?.missing ? `
+          <article class="item missing-info-card">
+            <h3>Eksik bilgiler</h3>
+            <div class="warning-box">${escapeHtml(result.distance.warning)}</div>
+            <form class="form" id="admin-ai-distance-form">
+              <div class="form-grid">
+                <label>Gidiş km <input name="outboundKm" type="number" min="0" placeholder="Google Maps gidiş km" required /></label>
+                <label>Dönüş km <input name="returnKm" type="number" min="0" placeholder="Google Maps dönüş km" required /></label>
+              </div>
+              <button class="btn" type="submit">Km bilgisiyle turu oluştur</button>
+              <p class="muted convert-status" id="admin-ai-distance-status" aria-live="polite"></p>
+            </form>
+          </article>
+        ` : ""}
+      </div>
+    </section>
+  `;
+}
+
+function renderPublic() {
+  app.innerHTML = `
+    <div class="public-shell">
+      <header class="public-header">
+        <a class="brand" href="/" data-link>
+          <span class="brand-mark">TF</span>
+          <span><strong>TourFlow AI</strong><small>Powered by FM Travel</small></span>
+        </a>
+        <a class="link-btn" href="/admin" data-link>FM Travel Admin Paneli</a>
+      </header>
+
+      <main class="hero">
+        <section class="hero-copy">
+          <p class="eyebrow">Premium tur teknolojisi</p>
+          <h1>Talebinden Tura, Akıllı Yolculuk.</h1>
+          <p class="lead">Seyahat planını saniyeler içinde oluştur, FM Travel ile güvenle organize et.</p>
+          <div class="hero-points">
+            <span>Dinamik rota</span>
+            <span>Anlık maliyet</span>
+            <span>Lead yönetimi</span>
+          </div>
+        </section>
+
+        <section class="planner-stage">
+          <section class="panel planner-card">
+            <div class="panel-header"><h2>TourFlow AI asistanı</h2><span class="badge green">Sohbet</span></div>
+            <form class="form ai-chat-form" id="public-ai-form">
+              <label>Seyahat isteğini yaz
+                <textarea name="message" required>Trabzon'a gitmek istiyorum. 2 kişiyiz, 4 günlük doğa ve yayla odaklı bir plan olsun.</textarea>
+              </label>
+              <button class="btn" type="submit">AI ile gezi planı oluştur</button>
+              <p class="muted" id="public-ai-status"></p>
+            </form>
+          </section>
+
+          <section class="panel compact-form-card">
+            <div class="panel-header"><h2>Hızlı bilgi alanı</h2></div>
+            <form class="form" id="planner-form">
+              <label>Nereye gitmek istiyorum
+                <input name="destination" value="Trabzon" required />
+              </label>
+              <div class="form-grid">
+                <label>Kaç kişi
+                  <input name="groupSize" type="number" min="1" value="2" required />
+                </label>
+                <label>Kaç gün
+                  <input name="durationDays" type="number" min="1" value="4" required />
+                </label>
+              </div>
+              <label>Bütçem
+                <input name="budget" type="number" min="1000" value="9000" required />
+              </label>
+              <button class="btn" type="submit">Gezi talebi oluştur</button>
+              <p class="muted" id="planner-status"></p>
+            </form>
+          </section>
+
+          <aside class="sample-plan-card">
+            <div class="sample-map">
+              <span>AI</span>
+            </div>
+            <p class="eyebrow">Örnek plan</p>
+            <h2>Kapadokya 3 Günlük Premium Rota</h2>
+            <div class="places">
+              <span class="badge green">Göreme</span>
+              <span class="badge sky">Avanos</span>
+              <span class="badge sun">Uçhisar</span>
+            </div>
+            <div class="sample-row"><span>Tahmini kişi başı</span><strong>12.950 TL</strong></div>
+            <div class="sample-row"><span>Rehber</span><strong>Önerilir</strong></div>
+          </aside>
+        </section>
+      </main>
+
+      ${plannerResult ? plannerResultHtml(plannerResult) : ""}
+    </div>
+  `;
+}
+
+async function refreshAdmin() {
+  const [summaryResult, toursResult, participantsResult, depositsResult, leadsResult, costRulesResult] = await Promise.allSettled([
+    api("/api/admin/summary"),
+    api("/api/tours"),
+    api("/api/participants"),
+    api("/api/deposits"),
+    api("/api/leads"),
+    api("/api/cost-rules")
+  ]);
+
+  tours = toursResult.status === "fulfilled" ? toursResult.value : [];
+  participants = participantsResult.status === "fulfilled" ? participantsResult.value : [];
+  deposits = depositsResult.status === "fulfilled" ? depositsResult.value : [];
+  leads = leadsResult.status === "fulfilled" ? leadsResult.value : getLocalLeads();
+  costRules = costRulesResult.status === "fulfilled" ? costRulesResult.value : defaultClientCostRules;
+
+  summary = summaryResult.status === "fulfilled"
+    ? summaryResult.value
+    : {
+        tours: tours.length,
+        participants: participants.length,
+        leads: leads.length,
+        openDeposits: deposits.filter((row) => Number(row.remainingDeposit || 0) > 0).length,
+        profit: tours.reduce((sum, tour) => sum + Number(tour.totals?.profit || 0), 0)
+      };
+}
+
+function adminShell(view, title, body) {
+  const nav = [
+    ["dashboard", "/admin", "Dashboard"],
+    ["leads", "/admin/leads", "Leadler"],
+    ["tours", "/admin/tours", "Tur Yönetimi"],
+    ["participants", "/admin/participants", "Katılımcılar"],
+    ["deposits", "/admin/deposits", "Kapora"],
+    ["profit", "/admin/profit", "Kâr"],
+    ["whatsapp", "/admin/whatsapp", "WhatsApp"]
+  ];
+
+  app.innerHTML = `
+    <div class="admin-shell">
+      <aside class="sidebar">
+        <a class="brand" href="/" data-link>
+          <span class="brand-mark">TF</span>
+          <span><strong>TourFlow AI</strong><small>Powered by FM Travel</small></span>
+        </a>
+        <nav class="nav">
+          ${nav.map(([key, href, label]) => `<a class="nav-link ${view === key ? "active" : ""}" href="${href}" data-link>${label}</a>`).join("")}
+        </nav>
+      </aside>
+
+      <main class="admin-content">
+        <header class="admin-topbar">
+          <div>
+            <p class="eyebrow">SaaS-ready operasyon paneli</p>
+            <h1>${escapeHtml(title)}</h1>
+          </div>
+          <div class="quick-stats">
+            <span class="badge green">${summary.tours} tur</span>
+            <span class="badge sky">${summary.participants} katılımcı</span>
+            <span class="badge sun">${summary.openDeposits} açık kapora</span>
+            <span class="badge clay">${summary.leads} lead</span>
+          </div>
+        </header>
+        <section class="view">${body}</section>
+      </main>
+    </div>
+  `;
+}
+
+function tourCard(tour) {
+  return `
+    <article class="tour-card clickable-card" data-tour-detail="${tour.id}">
+      <div class="tour-head">
+        <div>
+          <strong>${escapeHtml(tour.title)}</strong>
+          <p class="muted">${escapeHtml(tour.destination)} · ${tour.durationDays} gün · ${tour.groupSize} kişi</p>
+        </div>
+        <span class="badge ${tour.status.includes("Kapora") ? "sun" : "green"}">${escapeHtml(tour.status)}</span>
+      </div>
+      <div class="places">${tour.places.map((place) => `<span class="badge sky">${escapeHtml(place)}</span>`).join("")}</div>
+      <div class="three-grid">
+        <div class="metric"><span>Toplam maliyet</span><strong>${money(tour.totals.baseCost)}</strong></div>
+        <div class="metric"><span>Kişi başı maliyet</span><strong>${money(tour.totals.costPerPerson)}</strong></div>
+        <div class="metric"><span>Net kâr</span><strong>${money(tour.totals.netProfit)}</strong></div>
+        <div class="metric"><span>Kişi başı</span><strong>${money(tour.totals.pricePerPerson)}</strong></div>
+      </div>
+      ${tour.totals.costItems?.length ? costRows(tour.totals.costItems) : ""}
+      <div class="detail-actions">
+        <a class="link-btn" href="/admin/tours/${tour.id}" data-link>Tur detayını aç</a>
+      </div>
+    </article>
+  `;
+}
+
+function tourOptions() {
+  return tours.map((tour) => `<option value="${tour.id}">${escapeHtml(tour.title)}</option>`).join("");
+}
+
+function leadStatusOptions(activeStatus) {
+  return ["Yeni", "Arandı", "Teklif Verildi", "Kapora Bekleniyor", "Satışa Dönüştü"]
+    .map((status) => `<option value="${escapeHtml(status)}" ${status === activeStatus ? "selected" : ""}>${escapeHtml(status)}</option>`)
+    .join("");
+}
+
+function formatDateTime(value) {
+  if (!value) return "-";
+  return new Intl.DateTimeFormat("tr-TR", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit"
+  }).format(new Date(String(value).replace(" ", "T")));
+}
+
+function leadOfferPrice(lead) {
+  return Number(lead?.plan?.estimatedCost?.pricePerPerson || lead?.budget || 0);
+}
+
+function leadWhatsappMessage(lead) {
+  return `Merhaba ${lead.name || "değerli misafirimiz"},
+${lead.destination} talebiniz için size özel gezi planınızı hazırladık.
+Kişi sayısı: ${lead.groupSize}
+Süre: ${lead.durationDays} gün
+Tahmini kişi başı ücret: ${money(leadOfferPrice(lead))}
+Detaylı bilgi ve rezervasyon için size yardımcı olabiliriz.`;
+}
+
+function whatsappPhone(phone) {
+  let digits = String(phone || "").replace(/\D/g, "");
+  if (digits.startsWith("00")) digits = digits.slice(2);
+  if (digits.startsWith("0")) digits = `90${digits.slice(1)}`;
+  if (digits.length === 10) digits = `90${digits}`;
+  return digits;
+}
+
+function leadWhatsappUrl(lead) {
+  const phone = whatsappPhone(lead.phone);
+  return `https://wa.me/${phone}?text=${encodeURIComponent(leadWhatsappMessage(lead))}`;
+}
+
+function participantPaymentBadge(status) {
+  if (status === "Ödeme tamamlandı") return "green";
+  if (status === "Kısmi ödeme") return "sun";
+  return "red";
+}
+
+function leadCard(lead) {
+  const requestedTrip = `${lead.destination} · ${lead.groupSize} kişi · ${lead.durationDays} gün · ${money(lead.budget)}`;
+  const isConverted = lead.status === "Satışa Dönüştü";
+  return `
+    <article class="tour-card lead-card clickable-card" data-lead-detail="${lead.id}">
+      <div class="tour-head">
+        <div>
+          <strong>${escapeHtml(lead.name || "İsimsiz lead")}</strong>
+          <p class="muted">${escapeHtml(lead.phone)} · ${escapeHtml(lead.email)}</p>
+        </div>
+        <span class="badge ${isConverted ? "green" : lead.status === "Yeni" ? "clay" : "sun"}">${escapeHtml(lead.status)}</span>
+      </div>
+      <div class="three-grid">
+        <div class="metric"><span>İstenen gezi</span><strong>${escapeHtml(lead.destination)}</strong></div>
+        <div class="metric"><span>Detay</span><strong>${escapeHtml(`${lead.groupSize} kişi / ${lead.durationDays} gün`)}</strong></div>
+        <div class="metric"><span>Oluşturulma</span><strong>${escapeHtml(formatDateTime(lead.createdAt))}</strong></div>
+      </div>
+      <p class="muted">${escapeHtml(requestedTrip)}</p>
+      <div class="lead-actions">
+        <label>Durum
+          <select data-lead-status="${lead.id}">
+            ${leadStatusOptions(lead.status)}
+          </select>
+        </label>
+        <a class="btn secondary" href="${leadWhatsappUrl(lead)}" target="_blank" rel="noopener">
+          WhatsApp teklif gönder
+        </a>
+        <a class="link-btn lead-detail-link" href="/admin/leads/${lead.id}" data-link>Detay</a>
+        <button class="btn" type="button" data-convert-lead="${lead.id}" ${isConverted ? "disabled" : ""}>
+          Satışa dönüştür ve tura aktar
+        </button>
+        <p class="muted convert-status" data-convert-status="${lead.id}" aria-live="polite"></p>
+      </div>
+    </article>
+  `;
+}
+
+async function renderLeads() {
+  await refreshAdmin();
+  adminShell("leads", "Leadler", `
+    <section class="panel">
+      <div class="panel-header">
+        <h2>Public sayfadan gelen talepler</h2>
+        <span class="badge clay">${leads.length} lead</span>
+      </div>
+      <div class="tour-list">
+        ${leads.length ? leads.map(leadCard).join("") : '<p class="empty">Henüz lead yok. Public planner üzerinden talep bırakıldığında burada görünecek.</p>'}
+      </div>
+    </section>
+  `);
+}
+
+async function renderLeadDetail(id) {
+  await refreshAdmin();
+  let lead = leads.find((item) => Number(item.id) === Number(id));
+  try {
+    lead = await api(`/api/leads/${id}`);
+  } catch (error) {
+    if (!lead) throw error;
+  }
+
+  const plan = lead.plan || {};
+  const cost = plan.estimatedCost || {};
+  const isConverted = lead.status === "Satışa Dönüştü";
+  const message = leadWhatsappMessage(lead);
+
+  adminShell("leads", "Lead Detayı", `
+    <div class="detail-toolbar">
+      <a class="link-btn" href="/admin/leads" data-link>Leadlere dön</a>
+      <span class="badge ${isConverted ? "green" : "clay"}">${escapeHtml(lead.status)}</span>
+    </div>
+    <div class="lead-detail-grid">
+      <section class="panel">
+        <div class="panel-header"><h2>Müşteri bilgileri</h2></div>
+        <div class="item-list">
+          <div class="three-grid">
+            <div class="metric"><span>Ad soyad</span><strong>${escapeHtml(lead.name || "-")}</strong></div>
+            <div class="metric"><span>Telefon</span><strong>${escapeHtml(lead.phone || "-")}</strong></div>
+            <div class="metric"><span>E-posta</span><strong>${escapeHtml(lead.email || "-")}</strong></div>
+          </div>
+          <div class="three-grid">
+            <div class="metric"><span>İstenen gezi</span><strong>${escapeHtml(lead.destination)}</strong></div>
+            <div class="metric"><span>Kişi / süre</span><strong>${escapeHtml(`${lead.groupSize} kişi / ${lead.durationDays} gün`)}</strong></div>
+            <div class="metric"><span>Oluşturulma</span><strong>${escapeHtml(formatDateTime(lead.createdAt))}</strong></div>
+          </div>
+          <label>Durum
+            <select data-lead-status="${lead.id}">
+              ${leadStatusOptions(lead.status)}
+            </select>
+          </label>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-header"><h2>WhatsApp teklif mesajı</h2></div>
+        <div class="item-list">
+          <div class="copy-box">${escapeHtml(message)}</div>
+          <div class="detail-actions">
+            <a class="btn" href="${leadWhatsappUrl(lead)}" target="_blank" rel="noopener">WhatsApp teklif gönder</a>
+            <button class="btn secondary" type="button" data-convert-lead="${lead.id}" ${isConverted ? "disabled" : ""}>
+              Satışa dönüştür ve tura aktar
+            </button>
+            <p class="muted convert-status" data-convert-status="${lead.id}" aria-live="polite"></p>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <section class="panel">
+      <div class="panel-header">
+        <h2>AI planı</h2>
+        <span class="badge green">${escapeHtml(plan.title || lead.destination)}</span>
+      </div>
+      <div class="item-list">
+        <div class="three-grid">
+          <div class="metric"><span>Toplam satış</span><strong>${money(cost.salesTotal)}</strong></div>
+          <div class="metric"><span>Kişi başı ücret</span><strong>${money(cost.pricePerPerson || leadOfferPrice(lead))}</strong></div>
+          <div class="metric"><span>Net kâr</span><strong>${money(cost.profit || cost.netProfit)}</strong></div>
+        </div>
+        ${plan.places?.length ? `<article class="item"><h3>Gezilecek yerler</h3><div class="places">${plan.places.map((place) => `<span class="badge sky">${escapeHtml(place)}</span>`).join("")}</div></article>` : ""}
+        ${plan.plan?.length ? `<article class="item"><h3>Günlük program</h3><ol class="program">${plan.plan.map((day) => `<li>${escapeHtml(day)}</li>`).join("")}</ol></article>` : ""}
+        <article class="item"><h3>Konaklama</h3><p>${escapeHtml(plan.accommodation || "-")}</p></article>
+        <article class="item"><h3>Ulaşım</h3><p>${escapeHtml(plan.transport || "-")}</p></article>
+        ${plan.costItems?.length ? `<article class="item"><h3>Maliyet kalemleri</h3>${costRows(plan.costItems)}</article>` : ""}
+      </div>
+    </section>
+  `);
+}
+
+async function renderAdminDashboard() {
+  await refreshAdmin();
+  adminShell("dashboard", "Dashboard", `
+    <div class="dashboard-cards">
+      <article class="metric stat-card"><span>Toplam Lead</span><strong>${summary.leads}</strong><p class="muted">Public planner talepleri</p></article>
+      <article class="metric stat-card"><span>Aktif Tur</span><strong>${summary.tours}</strong><p class="muted">Operasyondaki teklifler</p></article>
+      <article class="metric stat-card"><span>Bekleyen Kapora</span><strong>${summary.openDeposits}</strong><p class="muted">Takip edilmesi gereken ödeme</p></article>
+      <article class="metric stat-card"><span>Tahmini Kâr</span><strong>${money(summary.profit)}</strong><p class="muted">Planlanan toplam marj</p></article>
+    </div>
+    <div class="admin-grid">
+      <section class="panel">
+        <div class="panel-header"><h2>Son leadler</h2><a class="link-btn" href="/admin/leads" data-link>Leadleri aç</a></div>
+        <div class="tour-list">
+          ${leads.slice(0, 3).map(leadCard).join("") || '<p class="empty">Henüz lead yok.</p>'}
+        </div>
+      </section>
+      <section class="panel">
+        <div class="panel-header"><h2>Aktif turlar</h2><a class="link-btn" href="/admin/tours" data-link>Tur yönetimi</a></div>
+        <div class="tour-list">${tours.slice(0, 3).map(tourCard).join("") || '<p class="empty">Henüz tur yok.</p>'}</div>
+      </section>
+    </div>
+  `);
+}
+
+async function renderTourManagement() {
+  await refreshAdmin();
+  adminShell("tours", "Tur Yönetimi", `
+    <section class="panel ai-command-panel">
+      <div class="panel-header">
+        <h2>AI tur organizasyon asistanı</h2>
+        <span class="badge green">Doğal dil</span>
+      </div>
+      <form class="form ai-chat-form" id="admin-ai-tour-form">
+        <label>Tur talimatını yaz
+          <textarea name="message" required>Kahramanmaraş çıkışlı 16 kişilik Arsuz günübirlik tur oluştur.</textarea>
+        </label>
+        <button class="btn" type="submit">AI ile tur oluştur</button>
+        <p class="muted" id="admin-ai-status"></p>
+      </form>
+    </section>
+    ${adminAssistantResult ? aiResultHtml(adminAssistantResult) : ""}
+    <section class="panel">
+      <div class="panel-header"><h2>Maliyet kuralları</h2><span class="badge green">${costRules.length} kural</span></div>
+      <div class="table-wrap">
+        <table class="table">
+          <thead><tr><th>Kalem</th><th>Tip</th><th>Birim</th><th>Birim fiyat</th></tr></thead>
+          <tbody>${costRules.map((rule) => `
+            <tr>
+              <td><strong>${escapeHtml(rule.label)}</strong></td>
+              <td>${escapeHtml(rule.type)}</td>
+              <td>${escapeHtml(rule.unit)}</td>
+              <td>${money(rule.unitPrice)}</td>
+            </tr>
+          `).join("")}</tbody>
+        </table>
+      </div>
+      <form class="form" id="cost-rule-form">
+        <div class="form-grid">
+          <label>Kalem adı <input name="label" value="Yeni Kalem" required /></label>
+          <label>Tip
+            <select name="type">
+              <option value="fm_vip_vehicle">FM VIP araç formülü</option>
+              <option value="fixed">Sabit ücret</option>
+              <option value="per_person">Kişi başı ücret</option>
+              <option value="boat">Tekne seçeneği</option>
+              <option value="manual">Manuel</option>
+            </select>
+          </label>
+          <label>Birim <input name="unit" value="tur" required /></label>
+          <label>Birim fiyat <input name="unitPrice" type="number" min="0" value="1000" required /></label>
+        </div>
+        <button class="btn secondary" type="submit">Maliyet kuralı kaydet</button>
+      </form>
+    </section>
+    <div class="admin-grid">
+      <section class="panel">
+        <div class="panel-header"><h2>Manuel tur oluştur</h2></div>
+        <form class="form" id="tour-form">
+          <div class="form-grid">
+            <label>Kalkış şehri <input name="origin" value="Kahramanmaraş" /></label>
+            <label>Varış şehri <input name="destination" value="Arsuz" required /></label>
+            <label>Başlangıç tarihi <input name="startDate" type="date" value="2026-07-20" /></label>
+            <label>Süre <input name="durationDays" type="number" min="1" value="4" /></label>
+            <label>Grup kişi sayısı <input name="groupSize" type="number" min="1" value="16" /></label>
+            <label>Satış fiyatı kişi başı <input name="salesPricePerPerson" type="number" min="0" value="1450" /></label>
+            <label>Gidiş km <input name="outboundKm" type="number" min="0" placeholder="Google Maps gidiş km" /></label>
+            <label>Dönüş km <input name="returnKm" type="number" min="0" placeholder="Google Maps dönüş km" /></label>
+            <label>Rehber <input name="guideCost" type="number" min="0" value="6000" /></label>
+            <label>Sigorta kişi başı <input name="insurancePerPerson" type="number" min="0" value="75" /></label>
+            <label>Otel maliyeti <input name="hotelCost" type="number" min="0" value="0" /></label>
+            <label>Tekne tipi
+              <select name="boatPricingType">
+                <option value="fixed">Sabit ücret</option>
+                <option value="per_person">Kişi başı ücret</option>
+              </select>
+            </label>
+            <label>Tekne tutarı <input name="boatUnitPrice" type="number" min="0" value="0" /></label>
+            <label>Diğer maliyet <input name="otherCost" type="number" min="0" value="0" /></label>
+          </div>
+          <button class="btn" type="submit">Tur oluştur</button>
+          <p class="muted convert-status" id="tour-form-status" aria-live="polite"></p>
+        </form>
+      </section>
+      <section class="panel">
+        <div class="panel-header"><h2>Aktif turlar</h2></div>
+        <div class="tour-list">${tours.map(tourCard).join("")}</div>
+      </section>
+    </div>
+    <section class="panel">
+      <div class="panel-header"><h2>Public planner leadleri</h2></div>
+      <div class="table-wrap">
+        <table class="table">
+          <thead><tr><th>Lead</th><th>Rota</th><th>Kişi</th><th>Gün</th><th>Bütçe</th></tr></thead>
+          <tbody>${leads.map((lead) => `
+            <tr>
+              <td><strong>${escapeHtml(lead.name)}</strong><br><span class="muted">${escapeHtml(lead.phone)} · ${escapeHtml(lead.email)}</span></td>
+              <td>${escapeHtml(lead.destination)}</td>
+              <td>${lead.groupSize}</td>
+              <td>${lead.durationDays}</td>
+              <td>${money(lead.budget)}</td>
+            </tr>
+          `).join("") || '<tr><td colspan="5">Henüz lead yok.</td></tr>'}</tbody>
+        </table>
+      </div>
+    </section>
+  `);
+}
+
+async function renderTourDetail(id) {
+  await refreshAdmin();
+  let tour = tours.find((item) => Number(item.id) === Number(id));
+  try {
+    tour = await api(`/api/tours/${id}`);
+  } catch (error) {
+    if (!tour) throw error;
+  }
+  const tourParticipants = participants.filter((item) => Number(item.tourId) === Number(tour.id));
+  const vehicleWarning = tour.totals.costItems?.find((item) => item.key === "vehicle")?.warning;
+  const participantSummary = {
+    totalPeople: tourParticipants.reduce((sum, item) => sum + Number(item.people || 1), 0),
+    collectedDeposit: tourParticipants.reduce((sum, item) => sum + Number(item.depositPaid || 0), 0),
+    unpaidCount: tourParticipants.filter((item) => Number(item.depositPaid || 0) <= 0).length,
+    partialCount: tourParticipants.filter((item) => Number(item.depositPaid || 0) > 0 && Number(item.remainingPayment || 0) > 0).length,
+    pendingCollection: tourParticipants.reduce((sum, item) => sum + Number(item.remainingPayment || 0), 0)
+  };
+  const selectedParticipant = tourParticipants[0];
+  const participantOptions = tourParticipants.map((participant) => `<option value="${participant.id}">${escapeHtml(`${participant.seatNumber ? `${participant.seatNumber} - ` : ""}${participant.name}`)}</option>`).join("");
+  const participantQuery = selectedParticipant ? `?participantId=${selectedParticipant.id}` : "";
+
+  adminShell("tours", "Tur Detayı", `
+    <div class="detail-toolbar">
+      <a class="link-btn" href="/admin/tours" data-link>Tur yönetimine dön</a>
+      <span class="badge green">${escapeHtml(tour.status)}</span>
+    </div>
+    <section class="panel">
+      <div class="panel-header">
+        <h2>${escapeHtml(tour.title)}</h2>
+        <span class="badge green">${escapeHtml(tour.destination)}</span>
+      </div>
+      <div class="item-list">
+        <div class="three-grid">
+          <div class="metric"><span>Tarih</span><strong>${escapeHtml(tour.startDate)}</strong></div>
+          <div class="metric"><span>Kişi / süre</span><strong>${escapeHtml(`${tour.groupSize} kişi / ${tour.durationDays} gün`)}</strong></div>
+          <div class="metric"><span>Kişi başı satış</span><strong>${money(tour.totals.pricePerPerson)}</strong></div>
+        </div>
+        <div class="three-grid">
+          <div class="metric"><span>Toplam maliyet</span><strong>${money(tour.totals.baseCost)}</strong></div>
+          <div class="metric"><span>Toplam satış</span><strong>${money(tour.totals.salesTotal)}</strong></div>
+          <div class="metric"><span>Net kâr</span><strong>${money(tour.totals.netProfit)}</strong></div>
+        </div>
+        ${vehicleWarning ? `<div class="warning-box">${escapeHtml(vehicleWarning)}</div>` : ""}
+        <form class="form" id="tour-distance-form" data-tour-id="${tour.id}">
+          <div class="form-grid">
+            <label>Gidiş km <input name="outboundKm" type="number" min="0" value="${tour.outboundKm ?? ""}" placeholder="Google Maps gidiş km" required /></label>
+            <label>Dönüş km <input name="returnKm" type="number" min="0" value="${tour.returnKm ?? ""}" placeholder="Google Maps dönüş km" required /></label>
+          </div>
+          <button class="btn secondary" type="submit">Km bilgisini kaydet ve araç maliyetini hesapla</button>
+          <p class="muted convert-status" id="tour-distance-status" aria-live="polite"></p>
+        </form>
+        <article class="item"><h3>Gezilecek yerler</h3><div class="places">${tour.places.map((place) => `<span class="badge sky">${escapeHtml(place)}</span>`).join("")}</div></article>
+        <article class="item"><h3>Program</h3><ol class="program">${tour.program.map((day) => `<li>${escapeHtml(day)}</li>`).join("")}</ol></article>
+        <article class="item"><h3>Maliyet kalemleri</h3>${costRows(tour.totals.costItems || [])}</article>
+      </div>
+    </section>
+    <section class="panel">
+      <div class="panel-header"><h2>PDF belgeler</h2><span class="badge green">İndirilebilir</span></div>
+      <div class="item-list">
+        ${tourParticipants.length ? `
+          <label>Katılımcı seç
+            <select id="document-participant-select">
+              ${participantOptions}
+            </select>
+          </label>
+        ` : '<div class="warning-box">Katılımcıya özel belge oluşturmak için önce katılımcı ekleyin.</div>'}
+        <div class="document-actions">
+          <a class="btn secondary participant-document-link ${selectedParticipant ? "" : "disabled-link"}" href="/api/tours/${tour.id}/documents/registration.pdf${participantQuery}" target="_blank" rel="noopener" data-document-type="registration">Tur Kayıt Belgesi</a>
+          <a class="btn secondary participant-document-link ${selectedParticipant ? "" : "disabled-link"}" href="/api/tours/${tour.id}/documents/deposit.pdf${participantQuery}" target="_blank" rel="noopener" data-document-type="deposit">Kapora Belgesi</a>
+          <a class="btn secondary" href="/api/tours/${tour.id}/documents/participants.pdf" target="_blank" rel="noopener">Katılımcı Listesi</a>
+          <a class="btn secondary" href="/api/tours/${tour.id}/documents/program.pdf" target="_blank" rel="noopener">Tur Programı</a>
+        </div>
+      </div>
+    </section>
+    <section class="panel">
+      <div class="panel-header"><h2>Katılımcılar</h2><span class="badge clay">${tourParticipants.length} kayıt</span></div>
+      <div class="item-list">
+        <div class="three-grid">
+          <div class="metric"><span>Toplam kişi</span><strong>${participantSummary.totalPeople}</strong></div>
+          <div class="metric"><span>Toplanan kapora</span><strong>${money(participantSummary.collectedDeposit)}</strong></div>
+          <div class="metric"><span>Bekleyen tahsilat</span><strong>${money(participantSummary.pendingCollection)}</strong></div>
+          <div class="metric"><span>Ödeme yapmayan</span><strong>${participantSummary.unpaidCount}</strong></div>
+          <div class="metric"><span>Kısmi ödeme yapan</span><strong>${participantSummary.partialCount}</strong></div>
+          <div class="metric"><span>Koltuk doluluğu</span><strong>${participantSummary.totalPeople} / ${tour.groupSize}</strong></div>
+        </div>
+        <form class="form" id="tour-participant-form" data-tour-id="${tour.id}">
+          <div class="form-grid">
+            <label>Ad Soyad <input name="name" required /></label>
+            <label>Telefon <input name="phone" required /></label>
+            <label>Kapora tutarı <input name="depositPaid" type="number" min="0" value="0" /></label>
+            <label>Toplam ücret <input name="totalPrice" type="number" min="0" value="${tour.totals.pricePerPerson}" /></label>
+            <label>Koltuk numarası <input name="seatNumber" /></label>
+            <label>Notlar <input name="notes" /></label>
+          </div>
+          <button class="btn" type="submit">Katılımcı ekle</button>
+          <p class="muted convert-status" id="tour-participant-status" aria-live="polite"></p>
+        </form>
+      </div>
+      <div class="table-wrap">
+        <table class="table">
+          <thead><tr><th>Ad soyad</th><th>Telefon</th><th>Koltuk</th><th>Kapora</th><th>Toplam ücret</th><th>Kalan ödeme</th><th>Durum</th><th>Notlar</th></tr></thead>
+          <tbody>${tourParticipants.map((participant) => `
+            <tr>
+              <td><strong>${escapeHtml(participant.name)}</strong><br><span class="muted">${escapeHtml(participant.email)}</span></td>
+              <td>${escapeHtml(participant.phone)}</td>
+              <td>${escapeHtml(participant.seatNumber || "-")}</td>
+              <td>${money(participant.depositPaid)}</td>
+              <td>${money(participant.totalPrice)}</td>
+              <td>${money(participant.remainingPayment)}</td>
+              <td><span class="badge ${participantPaymentBadge(participant.status)}">${escapeHtml(participant.status)}</span></td>
+              <td>${escapeHtml(participant.notes || "-")}</td>
+            </tr>
+          `).join("") || '<tr><td colspan="8">Bu tur için henüz katılımcı yok.</td></tr>'}</tbody>
+        </table>
+      </div>
+    </section>
+  `);
+}
+
+async function renderParticipants() {
+  await refreshAdmin();
+  adminShell("participants", "Katılımcı yönetimi", `
+    <div class="admin-grid">
+      <section class="panel">
+        <div class="panel-header"><h2>Katılımcı ekle</h2></div>
+        <form class="form" id="participant-form">
+          <label>Ad soyad <input name="name" required /></label>
+          <label>Telefon <input name="phone" required /></label>
+          <label>E-posta <input name="email" type="email" /></label>
+          <label>Tur <select name="tourId">${tourOptions()}</select></label>
+          <div class="form-grid">
+            <label>Kişi sayısı <input name="people" type="number" min="1" value="1" /></label>
+            <label>Kapora <input name="depositPaid" type="number" min="0" value="0" /></label>
+          </div>
+          <label>Toplam satış <input name="totalPrice" type="number" min="0" value="0" /></label>
+          <button class="btn" type="submit">Katılımcı ekle</button>
+        </form>
+      </section>
+      <section class="panel">
+        <div class="panel-header"><h2>Kayıtlar</h2></div>
+        <div class="table-wrap">
+          <table class="table">
+            <thead><tr><th>Katılımcı</th><th>Tur</th><th>Kişi</th><th>Kapora</th><th>Durum</th></tr></thead>
+            <tbody>${participants.map((row) => `
+              <tr>
+                <td><strong>${escapeHtml(row.name)}</strong><br><span class="muted">${escapeHtml(row.phone)}</span></td>
+                <td>${escapeHtml(row.tourTitle)}</td>
+                <td>${row.people}</td>
+                <td>${money(row.depositPaid)}</td>
+                <td><span class="badge ${row.depositPaid > 0 ? "green" : "sun"}">${escapeHtml(row.status)}</span></td>
+              </tr>
+            `).join("")}</tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+  `);
+}
+
+async function renderDeposits() {
+  await refreshAdmin();
+  adminShell("deposits", "Kapora takibi", `
+    <section class="panel">
+      <div class="panel-header"><h2>Kapora durumu</h2></div>
+      <div class="table-wrap">
+        <table class="table">
+          <thead><tr><th>Katılımcı</th><th>Tur</th><th>Beklenen</th><th>Alınan</th><th>Kalan</th><th>İlerleme</th></tr></thead>
+          <tbody>${deposits.map((row) => {
+            const percent = row.expectedDeposit ? Math.min(100, Math.round((row.depositPaid / row.expectedDeposit) * 100)) : 0;
+            return `<tr>
+              <td><strong>${escapeHtml(row.name)}</strong></td>
+              <td>${escapeHtml(row.tourTitle)}</td>
+              <td>${money(row.expectedDeposit)}</td>
+              <td>${money(row.depositPaid)}</td>
+              <td>${money(row.remainingDeposit)}</td>
+              <td><div class="progress"><span style="width:${percent}%"></span></div></td>
+            </tr>`;
+          }).join("")}</tbody>
+        </table>
+      </div>
+    </section>
+  `);
+}
+
+async function renderProfit() {
+  await refreshAdmin();
+  adminShell("profit", "Kâr hesabı", `
+    <section class="panel">
+      <div class="panel-header"><h2>Tur bazında kârlılık</h2></div>
+      <div class="tour-list">${tours.map((tour) => `
+        <article class="tour-card">
+          <div class="tour-head">
+            <div><strong>${escapeHtml(tour.title)}</strong><p class="muted">${tour.groupSize} kişi · ${tour.durationDays} gün</p></div>
+            <span class="badge green">${money(tour.totals.pricePerPerson)} / kişi</span>
+          </div>
+          <div class="three-grid">
+            <div class="metric"><span>Toplam maliyet</span><strong>${money(tour.totals.baseCost)}</strong></div>
+            <div class="metric"><span>Kişi başı maliyet</span><strong>${money(tour.totals.costPerPerson)}</strong></div>
+            <div class="metric"><span>Satış toplamı</span><strong>${money(tour.totals.salesTotal)}</strong></div>
+            <div class="metric"><span>Net kâr</span><strong>${money(tour.totals.netProfit)}</strong></div>
+          </div>
+          ${tour.totals.costItems?.length ? costRows(tour.totals.costItems) : ""}
+        </article>
+      `).join("")}</div>
+    </section>
+  `);
+}
+
+async function renderWhatsapp() {
+  await refreshAdmin();
+  const selected = tours[0];
+  const message = selected
+    ? `Merhaba, ${selected.destination} turunuz için program hazır. ${selected.durationDays} günlük akışta ${selected.places.slice(0, 3).join(", ")} yerleri bulunuyor. Kişi başı tahmini ücret ${money(selected.totals.pricePerPerson)}. Rezervasyon için kişi başı ${money(selected.depositPerPerson)} kapora ile ilerleyebiliriz.`
+    : "";
+  adminShell("whatsapp", "WhatsApp mesaj oluşturucu", `
+    <div class="two-grid">
+      <section class="panel">
+        <div class="panel-header"><h2>Mesaj ayarları</h2></div>
+        <form class="form" id="message-form">
+          <label>Tur <select name="tourId">${tourOptions()}</select></label>
+          <label>Mesaj türü
+            <select name="type">
+              <option value="offer">Tur teklifi</option>
+              <option value="deposit">Kapora isteme</option>
+            </select>
+          </label>
+          <button class="btn" type="submit">Mesaj oluştur</button>
+        </form>
+      </section>
+      <section class="panel">
+        <div class="panel-header"><h2>Hazır mesaj</h2></div>
+        <div class="item-list"><div class="copy-box" id="message-output">${escapeHtml(message)}</div></div>
+      </section>
+    </div>
+  `);
+}
+
+async function render() {
+  try {
+    const route = location.pathname;
+    const leadDetailRoute = route.match(/^\/admin\/leads\/(\d+)$/);
+    const tourDetailRoute = route.match(/^\/admin\/tours\/(\d+)$/);
+    if (leadDetailRoute) return await renderLeadDetail(leadDetailRoute[1]);
+    if (tourDetailRoute) return await renderTourDetail(tourDetailRoute[1]);
+    if (route === "/admin/leads") return await renderLeads();
+    if (route === "/admin") return await renderAdminDashboard();
+    if (route === "/admin/tours") return await renderTourManagement();
+    if (route === "/admin/participants") return await renderParticipants();
+    if (route === "/admin/deposits") return await renderDeposits();
+    if (route === "/admin/profit") return await renderProfit();
+    if (route === "/admin/whatsapp") return await renderWhatsapp();
+    return renderPublic();
+  } catch (error) {
+    app.innerHTML = `
+      <div class="public-shell">
+        <header class="public-header">
+          <a class="brand" href="/" data-link>
+            <span class="brand-mark">TF</span>
+            <span><strong>TourFlow AI</strong><small>FM Travel</small></span>
+          </a>
+          <a class="link-btn" href="/admin" data-link>Admin paneli tekrar yükle</a>
+        </header>
+        <main class="planner-result">
+          <section class="panel"><p class="empty">${escapeHtml(error.message)}</p></section>
+        </main>
+      </div>
+    `;
+  }
+}
+
+document.addEventListener("click", (event) => {
+  const convertButton = event.target.closest("[data-convert-lead]");
+  if (convertButton) {
+    event.preventDefault();
+    const leadId = convertButton.dataset.convertLead;
+    const defaultButtonText = "Satışa dönüştür ve tura aktar";
+    const status = document.querySelector(`[data-convert-status="${leadId}"]`);
+    convertButton.disabled = true;
+    convertButton.textContent = defaultButtonText;
+    if (status) {
+      status.textContent = "Satışa dönüştürülüyor, tur ve katılımcı kaydı oluşturuluyor...";
+    }
+    api(leadConvertEndpoint(leadId), { method: "POST", body: JSON.stringify({}) })
+      .then((result) => {
+        console.log("Lead convert sonucu:", result);
+        if (result.tourId) {
+          if (status) status.textContent = "Başarılı. Tur detay sayfasına yönlendiriliyor...";
+          window.location.href = `/admin/tours/${result.tourId}`;
+          return;
+        }
+        throw new Error("API başarılı döndü ancak tourId gelmedi.");
+      })
+      .catch((error) => {
+        console.error("Lead convert hatası:", error);
+        convertButton.disabled = false;
+        convertButton.textContent = defaultButtonText;
+        if (status) {
+          status.textContent = `Satışa dönüştürme hatası: ${error.message}`;
+        }
+      });
+    return;
+  }
+
+  const tourCard = event.target.closest("[data-tour-detail]");
+  if (tourCard && !event.target.closest("a, button, select, input, textarea, label")) {
+    event.preventDefault();
+    navigate(`/admin/tours/${tourCard.dataset.tourDetail}`);
+    return;
+  }
+
+  const leadCard = event.target.closest("[data-lead-detail]");
+  if (leadCard && !event.target.closest("a, button, select, input, textarea, label")) {
+    event.preventDefault();
+    navigate(`/admin/leads/${leadCard.dataset.leadDetail}`);
+    return;
+  }
+
+  const link = event.target.closest("[data-link]");
+  if (!link) return;
+  event.preventDefault();
+  navigate(new URL(link.href).pathname);
+});
+
+document.addEventListener("change", async (event) => {
+  const documentParticipantSelect = event.target.closest("#document-participant-select");
+  if (documentParticipantSelect) {
+    const tourId = location.pathname.match(/^\/admin\/tours\/(\d+)$/)?.[1];
+    document.querySelectorAll("[data-document-type]").forEach((link) => {
+      link.href = `/api/tours/${tourId}/documents/${link.dataset.documentType}.pdf?participantId=${documentParticipantSelect.value}`;
+    });
+    return;
+  }
+
+  const statusSelect = event.target.closest("[data-lead-status]");
+  if (!statusSelect) return;
+
+  await api(`/api/leads/${statusSelect.dataset.leadStatus}/status`, {
+    method: "POST",
+    body: JSON.stringify({ status: statusSelect.value })
+  });
+  if (location.pathname === `/admin/leads/${statusSelect.dataset.leadStatus}`) {
+    await renderLeadDetail(statusSelect.dataset.leadStatus);
+  } else {
+    await renderLeads();
+  }
+});
+
+document.addEventListener("submit", async (event) => {
+  event.preventDefault();
+
+  if (event.target.id === "public-ai-form") {
+    const form = event.target;
+    const button = form.querySelector("button[type='submit']");
+    const status = form.querySelector("#public-ai-status");
+    const data = payload(form);
+    button.disabled = true;
+    button.textContent = "AI düşünüyor...";
+    status.textContent = "İsteğin analiz ediliyor, rota ve maliyet hazırlanıyor.";
+
+    try {
+      try {
+        plannerResult = await api("/api/assistant/plan", { method: "POST", body: JSON.stringify(data) });
+      } catch {
+        plannerResult = buildClientAssistantPlan(data.message);
+      }
+      renderPublic();
+      document.querySelector("#planner-result")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    } catch (error) {
+      status.textContent = `AI plan oluşturamadı: ${error.message}`;
+      button.disabled = false;
+      button.textContent = "AI ile gezi planı oluştur";
+    }
+  }
+
+  if (event.target.id === "planner-form") {
+    const form = event.target;
+    const button = form.querySelector("button[type='submit']");
+    const status = form.querySelector("#planner-status");
+    button.disabled = true;
+    button.textContent = "Plan oluşturuluyor...";
+    status.textContent = "AI gezi planı hazırlanıyor.";
+
+    try {
+      const formData = payload(form);
+      try {
+        plannerResult = await api("/api/planner", { method: "POST", body: JSON.stringify(formData) });
+      } catch {
+        plannerResult = buildClientPlan(formData);
+      }
+      renderPublic();
+      document.querySelector("#planner-result")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    } catch (error) {
+      status.textContent = `Plan oluşturulamadı: ${error.message}`;
+      button.disabled = false;
+      button.textContent = "Gezi talebi oluştur";
+    }
+  }
+
+  if (event.target.id === "lead-form") {
+    const formData = payload(event.target);
+    try {
+      await api("/api/leads", { method: "POST", body: JSON.stringify(formData) });
+    } catch {
+      saveLocalLead(formData, plannerResult);
+    }
+    document.querySelector("#lead-status").textContent = "Talebiniz alındı. FM Travel ekibi kısa süre içinde sizinle iletişime geçecek.";
+  }
+
+  if (event.target.id === "tour-form") {
+    const status = event.target.querySelector("#tour-form-status");
+    try {
+      await api("/api/tours", { method: "POST", body: JSON.stringify(payload(event.target)) });
+      await renderTourManagement();
+    } catch (error) {
+      if (status) status.textContent = error.message;
+    }
+  }
+
+  if (event.target.id === "tour-distance-form") {
+    const form = event.target;
+    const status = form.querySelector("#tour-distance-status");
+    const button = form.querySelector("button[type='submit']");
+    button.disabled = true;
+    status.textContent = "Km bilgisi kaydediliyor ve araç maliyeti yeniden hesaplanıyor.";
+    try {
+      await api(`/api/tours/${form.dataset.tourId}/distance`, {
+        method: "PATCH",
+        body: JSON.stringify(payload(form))
+      });
+      await renderTourDetail(form.dataset.tourId);
+    } catch (error) {
+      button.disabled = false;
+      status.textContent = error.message;
+    }
+  }
+
+  if (event.target.id === "admin-ai-tour-form") {
+    const form = event.target;
+    const button = form.querySelector("button[type='submit']");
+    const status = form.querySelector("#admin-ai-status");
+    const formData = payload(form);
+    button.disabled = true;
+    button.textContent = "Tur oluşturuluyor...";
+    status.textContent = "AI programı, maliyeti, kârı ve mesajları hazırlıyor.";
+
+    try {
+      const response = await api("/api/admin/assistant/tours", { method: "POST", body: JSON.stringify(formData) });
+      adminAssistantResult = response.assistantPlan;
+      if (response.requiresDistance) {
+        await renderTourManagement();
+        const distanceStatus = document.querySelector("#admin-ai-status");
+        if (distanceStatus) distanceStatus.textContent = response.message || "Eksik km bilgilerini doldurun.";
+        document.querySelector(".missing-info-card")?.scrollIntoView({ behavior: "smooth", block: "center" });
+        return;
+      }
+      await renderTourManagement();
+    } catch (error) {
+      status.textContent = `Tur oluşturulamadı: ${error.message}`;
+      button.disabled = false;
+      button.textContent = "AI ile tur oluştur";
+    }
+  }
+
+  if (event.target.id === "admin-ai-distance-form") {
+    const form = event.target;
+    const status = form.querySelector("#admin-ai-distance-status");
+    const button = form.querySelector("button[type='submit']");
+    if (!adminAssistantResult) {
+      status.textContent = "AI taslağı bulunamadı. Lütfen tur talimatını tekrar oluşturun.";
+      return;
+    }
+    button.disabled = true;
+    status.textContent = "Km bilgisi alındı, maliyet hesaplanıyor ve tur oluşturuluyor.";
+    try {
+      const data = payload(form);
+      const response = await api("/api/tours", {
+        method: "POST",
+        body: JSON.stringify({
+          destination: adminAssistantResult.destination,
+          groupSize: adminAssistantResult.groupSize,
+          durationDays: adminAssistantResult.durationDays,
+          budget: adminAssistantResult.budget,
+          outboundKm: data.outboundKm,
+          returnKm: data.returnKm
+        })
+      });
+      adminAssistantResult = null;
+      window.location.href = `/admin/tours/${response.id}`;
+    } catch (error) {
+      button.disabled = false;
+      status.textContent = error.message;
+    }
+  }
+
+  if (event.target.id === "cost-rule-form") {
+    await api("/api/cost-rules", { method: "POST", body: JSON.stringify(payload(event.target)) });
+    await renderTourManagement();
+  }
+
+  if (event.target.id === "participant-form") {
+    await api("/api/participants", { method: "POST", body: JSON.stringify(payload(event.target)) });
+    await renderParticipants();
+  }
+
+  if (event.target.id === "tour-participant-form") {
+    const form = event.target;
+    const status = form.querySelector("#tour-participant-status");
+    const button = form.querySelector("button[type='submit']");
+    button.disabled = true;
+    status.textContent = "Katılımcı ekleniyor.";
+    try {
+      await api("/api/participants", {
+        method: "POST",
+        body: JSON.stringify({
+          ...payload(form),
+          tourId: form.dataset.tourId,
+          people: 1
+        })
+      });
+      await renderTourDetail(form.dataset.tourId);
+    } catch (error) {
+      button.disabled = false;
+      status.textContent = error.message;
+    }
+  }
+
+  if (event.target.id === "message-form") {
+    const data = payload(event.target);
+    const tour = tours.find((item) => String(item.id) === String(data.tourId)) || tours[0];
+    const text = data.type === "deposit"
+      ? `Merhaba, ${tour.destination} rezervasyonunuzu kesinleştirmek için kişi başı ${money(tour.depositPerPerson)} kapora alıyoruz. Kapora sonrası ulaşım ve konaklama opsiyonunu sabitliyorum.`
+      : `Merhaba, ${tour.destination} turunuz için ${tour.durationDays} günlük program hazır. Rotada ${tour.places.slice(0, 4).join(", ")} var. Kişi başı ücret ${money(tour.totals.pricePerPerson)}.`;
+    document.querySelector("#message-output").textContent = text;
+  }
+});
+
+window.addEventListener("popstate", render);
+render();

@@ -1,0 +1,19 @@
+TourFlow AI running at http://localhost:3000 
+Registered API routes:
+- POST /api/assistant/plan
+- POST /api/admin/assistant/tours
+- POST /api/planner
+- POST /api/leads
+- GET /api/admin/summary
+- GET /api/tours
+- GET /api/tours/:id
+- GET /api/cost-rules
+- POST /api/cost-rules
+- POST /api/tours
+- GET /api/participants
+- POST /api/participants
+- GET /api/deposits
+- GET /api/leads
+- GET /api/leads/:id
+- POST /api/leads/:id/status
+- POST /api/leads/:id/convert

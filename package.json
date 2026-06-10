@@ -1,0 +1,12 @@
+{
+  "name": "tourflow-ai",
+  "version": "1.0.0",
+  "private": true,
+  "description": "TourFlow AI tour organization management panel",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
