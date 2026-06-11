@@ -348,8 +348,35 @@ const destinationProfiles = [
   }
 ];
 
+const destinationDatabase = [
+  { name: "Darende", match: ["darende"], style: "Somuncu Baba, Tohma ve dogal su rotasi", places: ["Gunpinar Selalesi", "Tohma Kanyonu", "Somuncu Baba Kulliyesi", "Somuncu Baba Turbesi", "Kudret Havuzu", "Darende Carsisi", "Tarihi Darende Evleri"], historical: ["Somuncu Baba Kulliyesi", "Somuncu Baba Turbesi", "Tarihi Darende Evleri", "Darende Carsisi"], nature: ["Gunpinar Selalesi", "Tohma Kanyonu", "Kudret Havuzu"], photoSpots: ["Gunpinar Selalesi seyir noktasi", "Tohma Kanyonu", "Tarihi Darende Evleri sokaklari"], food: ["Yoresel ev yemekleri", "Darende carsisinda cay ve tatli molasi", "Yerel restoran"], hourlyProgram: ["07:00 Cikis", "10:00 Somuncu Baba Kulliyesi ve Turbesi", "11:30 Darende Carsisi", "12:30 Ogle yemegi", "14:00 Tohma Kanyonu ve Kudret Havuzu", "16:00 Gunpinar Selalesi", "18:00 Donus"], accommodation: "Gunubirlik rotalarda konaklama gerekmez; cok gunlu planlarda Malatya veya Darende merkez tercih edilebilir.", transport: "Kahramanmaras cikisli gruplar icin soforlu ozel arac ve Darende icinde esnek mola planlamasi onerilir.", guideThreshold: 8, costs: { transport: 760, accommodation: 0, food: 520, activity: 450, guideDaily: 3200, marginRate: 0.21 } },
+  { name: "Halfeti", match: ["halfeti"], style: "Firat kiyisi ve tekne rotasi", places: ["Savasan Koyu", "Rumkale", "Halfeti Tekne Turu", "Firat Nehri", "Eski Halfeti Sokaklari", "Birecik Kelaynak Merkezi"], historical: ["Rumkale", "Eski Halfeti Sokaklari", "Savasan Koyu"], nature: ["Firat Nehri", "Halfeti Tekne Turu", "Birecik Kelaynak Merkezi"], photoSpots: ["Batikkoy minaresi", "Rumkale tekne manzarasi", "Eski Halfeti tas sokaklari"], food: ["Firat kenari balik", "Halfeti kebabi", "Yerel kahve molasi"], hourlyProgram: ["08:00 Cikis", "10:30 Eski Halfeti sokaklari", "11:30 Tekne turu", "12:30 Rumkale ve Savasan Koyu", "14:00 Ogle yemegi", "15:30 Birecik Kelaynak Merkezi", "17:00 Donus"], accommodation: "Halfeti veya Sanliurfa merkezde butik otel onerilir.", transport: "Gaziantep veya Sanliurfa cikisli ozel arac, Halfeti icinde tekne turu ve kisa yuruyus rotasi onerilir.", guideThreshold: 8, costs: { transport: 780, accommodation: 1750, food: 470, activity: 650, guideDaily: 3200, marginRate: 0.21 } },
+  { name: "Arsuz", match: ["arsuz"], style: "Akdeniz sahil ve gastronomi rotasi", places: ["Arsuz Sahili", "Madenli Koyu", "Karaagac Plaji", "Iskenderun Sahili", "Titus Tuneli", "Besikli Magara"], historical: ["Titus Tuneli", "Besikli Magara"], nature: ["Arsuz Sahili", "Madenli Koyu", "Karaagac Plaji"], photoSpots: ["Arsuz gun batimi", "Madenli Koyu", "Iskenderun sahil hatti"], food: ["Deniz urunleri", "Hatay mezeleri", "Kunefe molasi"], hourlyProgram: ["07:30 Cikis", "10:30 Arsuz Sahili", "12:00 Madenli Koyu", "13:30 Ogle yemegi", "15:00 Karaagac Plaji", "16:30 Iskenderun Sahili", "18:00 Donus"], accommodation: "Arsuz sahil hattinda denize yakin butik otel veya apart konaklama onerilir.", transport: "Hatay/Adana baglantili transfer, sahil duraklari icin ozel arac onerilir.", guideThreshold: 10, costs: { transport: 720, accommodation: 1900, food: 620, activity: 500, guideDaily: 3000, marginRate: 0.2 } },
+  { name: "Kapadokya", match: ["kapadokya", "cappadocia"], style: "vadi, balon ve kultur rotasi", places: ["Goreme Acik Hava Muzesi", "Pasabag", "Avanos", "Uchisar Kalesi", "Kizil Vadi", "Derinkuyu Yeralti Sehri"], historical: ["Goreme Acik Hava Muzesi", "Uchisar Kalesi", "Derinkuyu Yeralti Sehri"], nature: ["Kizil Vadi", "Pasabag", "Guvercinlik Vadisi"], photoSpots: ["Balon izleme noktasi", "Kizil Vadi gun batimi", "Uchisar panoramasi"], food: ["Testi kebabi", "Nevsehir kabagi", "Yerel sarap tadimi"], hourlyProgram: ["05:30 Balon izleme", "09:30 Goreme Acik Hava Muzesi", "11:30 Pasabag", "13:00 Ogle yemegi", "14:30 Avanos", "16:00 Uchisar Kalesi", "17:30 Kizil Vadi"], accommodation: "Goreme, Uchisar veya Ortahisar'da tas otel onerilir.", transport: "Kayseri/Nevsehir transferi, vadiler arasi ozel arac onerilir.", guideThreshold: 4, costs: { transport: 800, accommodation: 2600, food: 560, activity: 1250, guideDaily: 4200, marginRate: 0.24 } },
+  { name: "Trabzon", match: ["trabzon"], style: "Karadeniz doga ve yayla rotasi", places: ["Sumela Manastiri", "Uzungol", "Ataturk Kosku", "Cal Magarasi", "Boztepe", "Hidirnebi Yaylasi"], historical: ["Sumela Manastiri", "Ataturk Kosku"], nature: ["Uzungol", "Cal Magarasi", "Hidirnebi Yaylasi"], photoSpots: ["Boztepe", "Uzungol kiyisi", "Sumela vadisi"], food: ["Akcaabat kofte", "Kuymak", "Karadeniz pidesi"], hourlyProgram: ["09:00 Ataturk Kosku", "10:30 Sumela Manastiri", "13:00 Ogle yemegi", "14:30 Cal Magarasi", "16:00 Boztepe", "17:30 Yoresel alisveris"], accommodation: "Trabzon merkez veya Uzungol/yayla hattinda butik konaklama onerilir.", transport: "Havalimani transferi ve yayla yollari icin soforlu ozel arac onerilir.", guideThreshold: 6, costs: { transport: 950, accommodation: 2200, food: 520, activity: 700, guideDaily: 3800, marginRate: 0.22 } },
+  { name: "Sanliurfa", match: ["sanliurfa", "şanlıurfa", "urfa"], style: "peygamberler sehri ve arkeoloji rotasi", places: ["Balikligol", "Gobeklitepe", "Harran", "Urfa Carsisi", "Gumruk Hani", "Halil-ur Rahman Camii"], historical: ["Gobeklitepe", "Harran", "Halil-ur Rahman Camii", "Gumruk Hani"], nature: ["Balikligol", "Harran ovasi"], photoSpots: ["Balikligol avlusu", "Harran kubbe evleri", "Urfa Carsisi"], food: ["Urfa kebabi", "Cig kofte", "Mirra ve menengic kahvesi"], hourlyProgram: ["09:00 Balikligol", "10:30 Urfa Carsisi", "12:30 Ogle yemegi", "14:00 Gobeklitepe", "16:00 Harran", "18:00 Sira gecesi opsiyonu"], accommodation: "Sanliurfa merkezde tarihi konak veya butik otel onerilir.", transport: "Sehir merkezi, Gobeklitepe ve Harran icin ozel arac planlamasi onerilir.", guideThreshold: 6, costs: { transport: 780, accommodation: 1900, food: 540, activity: 700, guideDaily: 3600, marginRate: 0.22 } },
+  { name: "Gaziantep", match: ["gaziantep", "antep"], style: "gastronomi, muze ve tarihi carsilar rotasi", places: ["Zeugma Mozaik Muzesi", "Gaziantep Kalesi", "Bakircilar Carsisi", "Almaci Pazari", "Emine Gogus Mutfak Muzesi", "Rumkale"], historical: ["Gaziantep Kalesi", "Bakircilar Carsisi", "Zeugma Mozaik Muzesi"], nature: ["Rumkale", "Firat kiyisi"], photoSpots: ["Bakircilar Carsisi", "Gaziantep Kalesi", "Rumkale manzarasi"], food: ["Baklava", "Beyran", "Katmer", "Antep kebabi"], hourlyProgram: ["09:00 Zeugma Mozaik Muzesi", "11:00 Gaziantep Kalesi", "12:30 Ogle yemegi", "14:00 Bakircilar Carsisi", "16:00 Almaci Pazari", "17:30 Tatli molasi"], accommodation: "Gaziantep merkezde tarihi hanlara ve carsilara yakin otel onerilir.", transport: "Merkez ici yuruyus ve Rumkale opsiyonu icin ozel arac onerilir.", guideThreshold: 6, costs: { transport: 760, accommodation: 1850, food: 650, activity: 650, guideDaily: 3600, marginRate: 0.22 } },
+  { name: "Mardin", match: ["mardin"], style: "tas mimari, Mezopotamya ve kultur rotasi", places: ["Eski Mardin", "Deyrulzafaran Manastiri", "Kasimiye Medresesi", "Mardin Ulu Camii", "Abbaralar", "Midyat Konuk Evi"], historical: ["Deyrulzafaran Manastiri", "Kasimiye Medresesi", "Mardin Ulu Camii", "Midyat Konuk Evi"], nature: ["Mezopotamya Ovasi manzarasi"], photoSpots: ["Eski Mardin teraslari", "Abbaralar", "Midyat sokaklari"], food: ["Kaburga dolmasi", "Sembusek", "Mardin kahvesi"], hourlyProgram: ["09:00 Eski Mardin", "10:30 Kasimiye Medresesi", "12:00 Ogle yemegi", "13:30 Deyrulzafaran Manastiri", "15:30 Abbaralar", "17:00 Mezopotamya manzarasi"], accommodation: "Eski Mardin'de tas konak veya butik otel onerilir.", transport: "Dar sokaklar icin yuruyus, Midyat ve manastir rotasi icin ozel arac onerilir.", guideThreshold: 5, costs: { transport: 800, accommodation: 2100, food: 580, activity: 700, guideDaily: 3800, marginRate: 0.23 } },
+  { name: "Nemrut", match: ["nemrut", "nemrut dagi", "nemrut dağı"], style: "gunes dogumu ve Kommagene rotasi", places: ["Nemrut Dagi", "Arsameia Oren Yeri", "Cendere Koprusu", "Karakus Tumulusu", "Kahta Kalesi", "Eski Kahta"], historical: ["Arsameia Oren Yeri", "Cendere Koprusu", "Karakus Tumulusu", "Kahta Kalesi"], nature: ["Nemrut Dagi zirvesi", "Kahta vadisi"], photoSpots: ["Nemrut gun dogumu", "Dev heykeller", "Cendere Koprusu"], food: ["Adiyaman cig kofte", "Yerel kebap", "Kahta mola noktasi"], hourlyProgram: ["03:30 Zirve transferi", "05:30 Nemrut gun dogumu", "08:30 Kahvalti", "10:00 Arsameia", "11:30 Cendere Koprusu", "13:00 Ogle yemegi", "14:30 Karakus Tumulusu"], accommodation: "Kahta veya Adiyaman merkezde konaklama onerilir.", transport: "Zirve yolu icin uygun arac, gun dogumu saatlerine gore erken transfer onerilir.", guideThreshold: 6, costs: { transport: 850, accommodation: 1800, food: 520, activity: 600, guideDaily: 3600, marginRate: 0.22 } },
+  { name: "Adana", match: ["adana"], style: "gastronomi, Seyhan ve kultur rotasi", places: ["Tas Kopru", "Sabanci Merkez Camii", "Adana Merkez Park", "Kazancilar Carsisi", "Buyuk Saat", "Varda Koprusu"], historical: ["Tas Kopru", "Buyuk Saat", "Kazancilar Carsisi", "Varda Koprusu"], nature: ["Seyhan Nehri", "Merkez Park"], photoSpots: ["Tas Kopru", "Sabanci Merkez Camii", "Varda Koprusu"], food: ["Adana kebap", "Salgam", "Bici bici"], hourlyProgram: ["09:00 Tas Kopru", "10:00 Sabanci Merkez Camii", "11:00 Merkez Park", "12:30 Adana kebap", "14:00 Kazancilar Carsisi", "16:00 Buyuk Saat", "17:30 Bici bici molasi"], accommodation: "Seyhan merkezde ulasimi kolay otel onerilir.", transport: "Merkez ici kisa transferler ve Varda Koprusu icin ozel arac onerilir.", guideThreshold: 8, costs: { transport: 720, accommodation: 1750, food: 620, activity: 450, guideDaily: 3200, marginRate: 0.21 } }
+];
+
+function normalizeTripText(value) {
+  return String(value || "")
+    .toLocaleLowerCase("tr-TR")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replaceAll("ı", "i")
+    .replaceAll("ş", "s")
+    .replaceAll("ğ", "g")
+    .replaceAll("ü", "u")
+    .replaceAll("ö", "o")
+    .replaceAll("ç", "c");
+}
+
 function getDestinationProfile(destination) {
-  const key = destination.toLocaleLowerCase("tr-TR");
+  const key = normalizeTripText(destination);
+  return destinationDatabase.find((profile) => profile.match.some((term) => key.includes(normalizeTripText(term)))) || null;
   return destinationProfiles.find((profile) => profile.match.some((term) => key.includes(term))) || {
     match: [],
     style: `${destination} keşif rotası`,
@@ -375,6 +402,33 @@ function buildPlan(input) {
   const durationDays = Math.max(1, Number(input.durationDays || input.duration_days || 3));
   const budget = Math.max(1000, Number(input.budget || 9000));
   const profile = getDestinationProfile(destination);
+  if (!profile) {
+    const warning = "Bu destinasyon için yeterli veri bulunamadı";
+    return {
+      destination,
+      groupSize,
+      durationDays,
+      budget,
+      title: `${destination} tur planı`,
+      plan: [warning],
+      places: [],
+      historical: [],
+      nature: [],
+      photoSpots: [],
+      food: [],
+      hourlyProgram: [],
+      destinationWarning: warning,
+      estimatedCost: { baseCost: 0, costPerPerson: 0, profit: 0, netProfit: 0, salesTotal: 0, pricePerPerson: 0 },
+      costItems: [],
+      distance: { outboundKm: null, returnKm: null, routeKm: null, missing: true, warning },
+      accommodation: warning,
+      transport: warning,
+      guideRequired: false,
+      whatsappMessage: warning,
+      depositMessage: warning
+    };
+  }
+  profile.dailyThemes = profile.dailyThemes || profile.hourlyProgram || profile.places;
   const guideRequired = groupSize >= profile.guideThreshold || durationDays >= 3;
   const costEngine = calculateCostItems({ ...input, destination, groupSize, durationDays, guideRequired });
   const baseCost = costEngine.items.reduce((sum, item) => sum + item.total, 0);
@@ -384,7 +438,7 @@ function buildPlan(input) {
   const salesTotal = pricePerPerson * groupSize;
   const profit = salesTotal - baseCost;
   const costPerPerson = Math.ceil(baseCost / groupSize / 50) * 50;
-  const plan = Array.from({ length: durationDays }, (_, index) => {
+  const plan = durationDays === 1 && profile.hourlyProgram?.length ? profile.hourlyProgram : Array.from({ length: durationDays }, (_, index) => {
     const theme = profile.dailyThemes[index % profile.dailyThemes.length];
     const primary = profile.places[index % profile.places.length];
     const secondary = profile.places[(index + 1) % profile.places.length];
@@ -401,6 +455,12 @@ function buildPlan(input) {
     title: `${destination} ${durationDays} Günlük ${profile.style}`,
     plan,
     places: profile.places,
+    historical: profile.historical || [],
+    nature: profile.nature || [],
+    photoSpots: profile.photoSpots || [],
+    food: profile.food || [],
+    hourlyProgram: profile.hourlyProgram || [],
+    destinationWarning: "",
     estimatedCost: { baseCost, costPerPerson, profit, netProfit: profit, salesTotal, pricePerPerson },
     costItems: costEngine.items,
     distance: {
@@ -439,9 +499,43 @@ function parseNaturalTripRequest(message) {
   return { message: text, origin, destination, groupSize, durationDays, budget };
 }
 
+function parseNaturalTripRequest(message) {
+  const text = String(message || "").trim();
+  const lower = text.toLocaleLowerCase("tr-TR");
+  const originMatch = text.match(/^(.{2,60}?)\s*(?:çıkışlı|cikisli|çıkış|cikis|Ã§Ä±kÄ±ÅŸlÄ±|Ã§Ä±kÄ±ÅŸ|ÃƒÂ§Ã„Â±k|ÃƒÂ§ikis)/i);
+  const words = text.split(/\s+/).filter(Boolean);
+  const originTokenIndex = words.findIndex((word) => /^cikisli$|^cikis$/.test(normalizeTripText(word)));
+  const origin = originTokenIndex > 0 ? words.slice(0, originTokenIndex).join(" ") : (originMatch ? originMatch[1].trim() : "");
+  const destinationText = originTokenIndex > -1 ? words.slice(originTokenIndex + 1).join(" ") : text.replace(originMatch?.[0] || "", " ");
+  const normalizedDestinationText = normalizeTripText(destinationText);
+  const peopleMatch = lower.match(/(\d+)\s*(?:kişilik|kisilik|kişi|kisi|kiÅŸilik|kiÅŸi)/);
+  const dayMatch = lower.match(/(\d+)\s*(?:günlük|gunluk|gün|gun|gÃ¼nlÃ¼k|gÃ¼n)/);
+  const budgetMatch = lower.match(/(\d[\d. ]*)\s*(?:tl|₺|lira|â‚º)/);
+  const destinationFromKnown = destinationDatabase.find((profile) => profile.match.some((term) => normalizedDestinationText.includes(normalizeTripText(term))))?.name;
+  const destinationMatch = destinationText.match(/\b([A-Za-zÇĞİÖŞÜçğıöşüÃ‡ÄÄ°Ã–ÅÃœÃ§ÄŸÄ±Ã¶ÅŸÃ¼]+)\b/i);
+  const destination = destinationFromKnown || destinationMatch?.[1] || "Yeni Rota";
+  const durationDays = lower.includes("günübirlik") || lower.includes("gunubirlik") || lower.includes("birlik") || lower.includes("gÃ¼nÃ¼birlik")
+    ? 1
+    : Math.max(1, Number(dayMatch?.[1] || 3));
+  const groupSize = Math.max(1, Number(peopleMatch?.[1] || 2));
+  const budget = budgetMatch ? Number(budgetMatch[1].replace(/[. ]/g, "")) : 9000;
+
+  return { message: text, origin, destination, groupSize, durationDays, budget };
+}
+
 function buildAssistantResponse(payload) {
   const parsed = parseNaturalTripRequest(payload.message);
   const plan = buildPlan(parsed);
+  if (plan.destinationWarning) {
+    return {
+      ...plan,
+      origin: parsed.origin,
+      sourceMessage: parsed.message,
+      assistantSummary: plan.destinationWarning,
+      whatsappMessage: plan.destinationWarning,
+      depositMessage: plan.destinationWarning
+    };
+  }
   const originText = parsed.origin ? `${parsed.origin} çıkışlı ` : "";
   return {
     ...plan,
@@ -578,6 +672,9 @@ function sendPdf(res, filename, title, lines) {
   const chunks = [];
   let y = 800;
   chunks.push("BT");
+  chunks.push("/F1 12 Tf");
+  chunks.push(`1 0 0 1 50 ${y} Tm (${pdfSafe("FM Travel | TourFlow AI")}) Tj`);
+  y -= 28;
   chunks.push("/F1 18 Tf");
   chunks.push(`1 0 0 1 50 ${y} Tm (${pdfSafe(title)}) Tj`);
   y -= 34;

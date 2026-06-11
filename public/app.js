@@ -11,6 +11,16 @@ let costRules = [];
 let adminSession = null;
 
 const leadConvertEndpoint = (leadId) => `/api/leads/${leadId}/convert`;
+const fmTravelLogoPath = "/assets/fm-travel-logo.png";
+
+function fmTravelLogoHtml(className = "") {
+  return `
+    <span class="fm-logo ${className}">
+      <img src="${fmTravelLogoPath}" alt="FM Travel" onerror="this.hidden=true; this.nextElementSibling.hidden=false" />
+      <span class="fm-logo-fallback" hidden>FM Travel</span>
+    </span>
+  `;
+}
 
 const defaultClientCostRules = [
   { key: "vehicle", label: "Araç", type: "fm_vip_vehicle", unit: "km", unitPrice: 10 },
@@ -59,6 +69,14 @@ function buildClientPlan(data) {
   const key = destination.toLocaleLowerCase("tr-TR");
   const profiles = [
     {
+      terms: ["darende"],
+      style: "Somuncu Baba, Tohma ve dogal su rotasi",
+      places: ["Gunpinar Selalesi", "Tohma Kanyonu", "Somuncu Baba Kulliyesi", "Somuncu Baba Turbesi", "Kudret Havuzu", "Darende Carsisi", "Tarihi Darende Evleri"],
+      accommodation: "Gunubirlik rotalarda konaklama gerekmez; cok gunlu planlarda Darende veya Malatya merkez tercih edilebilir.",
+      transport: "Kahramanmaras cikisli gruplar icin soforlu ozel arac ve Darende icinde esnek mola planlamasi onerilir.",
+      costs: { daily: 1850, activity: 450, guide: 3200, margin: 1.21 }
+    },
+    {
       terms: ["trabzon"],
       style: "Karadeniz doga ve yayla rotasi",
       places: ["Sumela Manastiri", "Uzungol", "Ataturk Kosku", "Cal Magarasi", "Boztepe", "Hidirnebi Yaylasi"],
@@ -91,13 +109,26 @@ function buildClientPlan(data) {
       costs: { daily: 2050, activity: 500, guide: 3000, margin: 1.2 }
     }
   ];
-  const profile = profiles.find((item) => item.terms.some((term) => key.includes(term))) || {
-    style: `${destination} kesif rotasi`,
-    places: [`${destination} merkez`, `${destination} tarihi bolge`, `${destination} manzara noktasi`, `${destination} yerel pazar`, `${destination} doga rotasi`],
-    accommodation: `${destination} merkezde ulasimi kolay, kahvalti dahil butik veya 3-4 yildizli otel onerilir.`,
-    transport: `${destination} icin transfer, sehir ici ozel arac ve esnek mola plani onerilir.`,
-    costs: { daily: 1950, activity: 550, guide: 3200, margin: 1.21 }
-  };
+  const profile = profiles.find((item) => item.terms.some((term) => key.includes(term)));
+  if (!profile) {
+    const warning = "Bu destinasyon için yeterli veri bulunamadı";
+    return {
+      destination,
+      groupSize,
+      durationDays,
+      budget,
+      title: `${destination} tur planı`,
+      plan: [warning],
+      places: [],
+      destinationWarning: warning,
+      estimatedCost: { baseCost: 0, costPerPerson: 0, profit: 0, netProfit: 0, salesTotal: 0, pricePerPerson: 0 },
+      costItems: [],
+      distance: { outboundKm: null, returnKm: null, routeKm: null, missing: true, warning },
+      accommodation: warning,
+      transport: warning,
+      guideRequired: false
+    };
+  }
   const guideRequired = groupSize >= 8 || durationDays >= 3;
   const rawOutboundKm = data.outboundKm ?? data.outbound_km;
   const rawReturnKm = data.returnKm ?? data.return_km;
@@ -156,6 +187,29 @@ function parseClientTripMessage(message) {
     destination,
     groupSize: Number(peopleMatch?.[1] || 2),
     durationDays: lower.includes("günübirlik") || lower.includes("gunubirlik") || lower.includes("birlik") ? 1 : Number(dayMatch?.[1] || 3),
+    budget: 9000
+  };
+}
+
+function parseClientTripMessage(message) {
+  const text = String(message || "").trim();
+  const lower = text.toLocaleLowerCase("tr-TR");
+  const originMatch = text.match(/^(.{2,60}?)\s*(?:çıkışlı|cikisli|çıkış|cikis|Ã§Ä±kÄ±ÅŸlÄ±|Ã§Ä±kÄ±ÅŸ|ÃƒÂ§Ã„Â±k|ÃƒÂ§ikis)/i);
+  const words = text.split(/\s+/).filter(Boolean);
+  const normalize = (value) => String(value || "").toLocaleLowerCase("tr-TR").normalize("NFD").replace(/[\u0300-\u036f]/g, "").replaceAll("ı", "i").replaceAll("ş", "s").replaceAll("ğ", "g").replaceAll("ü", "u").replaceAll("ö", "o").replaceAll("ç", "c");
+  const originTokenIndex = words.findIndex((word) => /^cikisli$|^cikis$/.test(normalize(word)));
+  const destinationText = originTokenIndex > -1 ? words.slice(originTokenIndex + 1).join(" ") : text.replace(originMatch?.[0] || "", " ");
+  const destinationLower = destinationText.toLocaleLowerCase("tr-TR");
+  const peopleMatch = lower.match(/(\d+)\s*(?:kişilik|kisilik|kişi|kisi|kiÅŸilik|kiÅŸi)/);
+  const dayMatch = lower.match(/(\d+)\s*(?:günlük|gunluk|gün|gun|gÃ¼nlÃ¼k|gÃ¼n)/);
+  const known = ["Darende", "Halfeti", "Arsuz", "Kapadokya", "Trabzon", "Sanliurfa", "Şanlıurfa", "Gaziantep", "Mardin", "Nemrut", "Adana"];
+  const destination = known.find((item) => destinationLower.includes(item.toLocaleLowerCase("tr-TR"))) || "Yeni Rota";
+  return {
+    message: text,
+    origin: originTokenIndex > 0 ? words.slice(0, originTokenIndex).join(" ") : (originMatch ? originMatch[1].trim() : ""),
+    destination,
+    groupSize: Number(peopleMatch?.[1] || 2),
+    durationDays: lower.includes("günübirlik") || lower.includes("gunubirlik") || lower.includes("birlik") || lower.includes("gÃ¼nÃ¼birlik") ? 1 : Number(dayMatch?.[1] || 3),
     budget: 9000
   };
 }
@@ -314,7 +368,7 @@ function renderPublic() {
     <div class="public-shell">
       <header class="public-header">
         <a class="brand" href="/" data-link>
-          <span class="brand-mark">TF</span>
+          ${fmTravelLogoHtml()}
           <span><strong>TourFlow AI</strong><small>Powered by FM Travel</small></span>
         </a>
         <a class="link-btn" href="/admin" data-link>FM Travel Admin Paneli</a>
@@ -402,7 +456,7 @@ function renderPublicPremium() {
     <div class="public-shell">
       <header class="public-header">
         <a class="brand" href="/" data-link>
-          <span class="brand-mark">TF</span>
+          ${fmTravelLogoHtml()}
           <span><strong>TourFlow AI</strong><small>Powered by FM Travel</small></span>
         </a>
         <a class="link-btn" href="/admin" data-link>FM Travel Admin Paneli</a>
@@ -582,20 +636,38 @@ async function requireAdminSession() {
 function renderAdminLogin(message = "") {
   app.innerHTML = `
     <div class="auth-shell">
-      <section class="panel auth-card">
-        <div class="panel-header">
-          <div>
-            <p class="eyebrow">Admin girisi</p>
-            <h1>TourFlow AI</h1>
-          </div>
-          <span class="brand-mark">TF</span>
+      <section class="auth-brand-panel">
+        <a class="brand auth-brand" href="/" data-link>
+          ${fmTravelLogoHtml("auth-logo")}
+          <span><strong>TourFlow AI</strong><small>Powered by FM Travel</small></span>
+        </a>
+        <div class="auth-brand-copy">
+          <p class="eyebrow">Premium operasyon teknolojisi</p>
+          <h1>TourFlow AI Yönetim Paneli</h1>
+          <h2>Yeni Rotalar, Yeni Anılar</h2>
+          <p>Lead, tur, kapora ve operasyon yönetimini güvenle kontrol edin.</p>
         </div>
-        <form class="form" id="admin-login-form">
-          <label>Kullanici adi <input name="username" value="admin" autocomplete="username" required /></label>
-          <label>Sifre <input name="password" type="password" autocomplete="current-password" required /></label>
-          <button class="btn" type="submit">Giris yap</button>
+        <div class="auth-proof-grid">
+          <article><strong>Lead</strong><span>Yeni talepleri takip edin</span></article>
+          <article><strong>Tur</strong><span>Program ve katılımcıları yönetin</span></article>
+          <article><strong>Kapora</strong><span>Ödeme durumunu kontrol edin</span></article>
+          <article><strong>WhatsApp</strong><span>Mesaj linklerini hazırlayın</span></article>
+        </div>
+      </section>
+
+      <section class="panel auth-card">
+        <div class="auth-card-head">
+          <span class="badge green">Güvenli giriş</span>
+          <h2>Admin girişi</h2>
+          <p class="muted">TourFlow AI operasyon paneline devam etmek için bilgilerinizi girin.</p>
+        </div>
+        <form class="form auth-form" id="admin-login-form">
+          <label>Kullanıcı adı <input name="username" value="admin" autocomplete="username" required /></label>
+          <label>Şifre <input name="password" type="password" autocomplete="current-password" required /></label>
+          <button class="btn" type="submit">Giriş yap</button>
           <p class="muted" id="admin-login-status">${escapeHtml(message)}</p>
         </form>
+        <p class="auth-powered">Powered by FM Travel</p>
       </section>
     </div>
   `;
@@ -616,7 +688,7 @@ function adminShell(view, title, body) {
     <div class="admin-shell">
       <aside class="sidebar">
         <a class="brand" href="/" data-link>
-          <span class="brand-mark">TF</span>
+          ${fmTravelLogoHtml("sidebar-logo")}
           <span><strong>TourFlow AI</strong><small>Powered by FM Travel</small></span>
         </a>
         <nav class="nav">
@@ -1114,7 +1186,7 @@ async function renderTourDetail(id) {
       </div>
     </section>
     <section class="panel">
-      <div class="panel-header"><h2>PDF belgeler</h2><span class="badge green">İndirilebilir</span></div>
+      <div class="panel-header"><h2>${fmTravelLogoHtml("panel-logo")} PDF belgeler</h2><span class="badge green">İndirilebilir</span></div>
       <div class="item-list">
         ${tourParticipants.length ? `
           <label>Katılımcı seç
@@ -1174,7 +1246,7 @@ async function renderTourDetail(id) {
       </div>
     </section>
     <section class="panel whatsapp-bulk-panel" data-tour-whatsapp="${tour.id}">
-      <div class="panel-header"><h2>WhatsApp toplu mesaj</h2><span class="badge green">Manuel gonderim</span></div>
+      <div class="panel-header"><h2>${fmTravelLogoHtml("panel-logo")} WhatsApp toplu mesaj</h2><span class="badge green">Manuel gonderim</span></div>
       <div class="item-list">
         <div class="form-grid">
           <label>Kalkis saati <input name="departureTime" type="time" value="08:00" data-whatsapp-departure-time /></label>
@@ -1336,7 +1408,7 @@ async function render() {
       <div class="public-shell">
         <header class="public-header">
           <a class="brand" href="/" data-link>
-            <span class="brand-mark">TF</span>
+            ${fmTravelLogoHtml()}
             <span><strong>TourFlow AI</strong><small>FM Travel</small></span>
           </a>
           <a class="link-btn" href="/admin" data-link>Admin paneli tekrar yükle</a>
