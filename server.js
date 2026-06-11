@@ -134,7 +134,7 @@ function verifyPassword(password, user) {
 function seedAdminUser() {
   const existing = db.prepare("SELECT username FROM admin_users WHERE username = ?").get("admin");
   if (existing) return;
-  const { hash, salt } = hashPassword(process.env.ADMIN_PASSWORD || "admin123");
+  const { hash, salt } = hashPassword(process.env.ADMIN_PASSWORD || "fmtravelfama2002");
   db.prepare("INSERT INTO admin_users (username, password_hash, password_salt) VALUES (?, ?, ?)").run("admin", hash, salt);
 }
 
@@ -668,30 +668,171 @@ function pdfSafe(value) {
     .replace(/[()\\]/g, "\\$&");
 }
 
-function sendPdf(res, filename, title, lines) {
-  const chunks = [];
-  let y = 800;
-  chunks.push("BT");
-  chunks.push("/F1 12 Tf");
-  chunks.push(`1 0 0 1 50 ${y} Tm (${pdfSafe("FM Travel | TourFlow AI")}) Tj`);
-  y -= 28;
-  chunks.push("/F1 18 Tf");
-  chunks.push(`1 0 0 1 50 ${y} Tm (${pdfSafe(title)}) Tj`);
-  y -= 34;
-  chunks.push("/F1 11 Tf");
-  for (const line of lines) {
-    if (y < 60) break;
-    chunks.push(`1 0 0 1 50 ${y} Tm (${pdfSafe(line)}) Tj`);
-    y -= 18;
+function splitPdfText(value, maxLength = 58) {
+  const words = String(value ?? "").split(/\s+/).filter(Boolean);
+  const lines = [];
+  let line = "";
+  for (const word of words) {
+    if ((line + " " + word).trim().length > maxLength) {
+      if (line) lines.push(line);
+      line = word;
+    } else {
+      line = `${line} ${word}`.trim();
+    }
   }
-  chunks.push("ET");
-  const stream = chunks.join("\n");
+  if (line) lines.push(line);
+  return lines.length ? lines : [""];
+}
+
+function qrMatrix(value, size = 25) {
+  const matrix = Array.from({ length: size }, () => Array(size).fill(false));
+  const finder = (x, y) => {
+    for (let row = 0; row < 7; row += 1) {
+      for (let col = 0; col < 7; col += 1) {
+        const edge = row === 0 || row === 6 || col === 0 || col === 6;
+        const center = row >= 2 && row <= 4 && col >= 2 && col <= 4;
+        matrix[y + row][x + col] = edge || center;
+      }
+    }
+  };
+  finder(0, 0);
+  finder(size - 7, 0);
+  finder(0, size - 7);
+  const hash = crypto.createHash("sha256").update(String(value)).digest();
+  for (let y = 0; y < size; y += 1) {
+    for (let x = 0; x < size; x += 1) {
+      const inFinder = (x < 7 && y < 7) || (x >= size - 7 && y < 7) || (x < 7 && y >= size - 7);
+      if (inFinder) continue;
+      const byte = hash[(x * 7 + y * 13) % hash.length];
+      matrix[y][x] = ((byte + x * 3 + y * 5) % 7) < 3;
+    }
+  }
+  return matrix;
+}
+
+function sendPdf(res, filename, title, documentContent) {
+  const content = Array.isArray(documentContent) ? { tables: [{ rows: documentContent.map((line) => ["", line]) }] } : documentContent;
+  const ops = [];
+  const page = { width: 595, height: 842, margin: 44 };
+  const createdAt = new Date().toLocaleString("tr-TR");
+  const qrText = content.qrText || `TourFlow AI Tur No: ${content.tourId || ""}`;
+  const add = (value) => ops.push(value);
+  const color = (r, g, b) => add(`${r} ${g} ${b} rg ${r} ${g} ${b} RG`);
+  const rect = (x, y, w, h, fill = true) => add(`${x} ${y} ${w} ${h} re ${fill ? "f" : "S"}`);
+  const line = (x1, y1, x2, y2) => add(`${x1} ${y1} m ${x2} ${y2} l S`);
+  const text = (value, x, y, size = 10, font = "F1") => {
+    add(`BT /${font} ${size} Tf 1 0 0 1 ${x} ${y} Tm (${pdfSafe(value)}) Tj ET`);
+  };
+  const drawWrapped = (value, x, y, maxLength, size = 9, font = "F1", leading = 12) => {
+    let cursor = y;
+    for (const part of splitPdfText(value, maxLength)) {
+      text(part, x, cursor, size, font);
+      cursor -= leading;
+    }
+    return cursor;
+  };
+  const drawQr = (value, x, y, box = 82) => {
+    color(1, 1, 1);
+    rect(x - 6, y - 6, box + 12, box + 12, true);
+    color(0.06, 0.18, 0.14);
+    const matrix = qrMatrix(value);
+    const cell = box / matrix.length;
+    matrix.forEach((row, rowIndex) => {
+      row.forEach((filled, colIndex) => {
+        if (filled) rect(x + colIndex * cell, y + box - (rowIndex + 1) * cell, cell + 0.15, cell + 0.15, true);
+      });
+    });
+    color(0.25, 0.25, 0.25);
+    text("QR Kod", x + 18, y - 18, 8, "F2");
+  };
+
+  color(0.02, 0.16, 0.12);
+  rect(0, 742, page.width, 100, true);
+  color(0.86, 0.64, 0.25);
+  rect(0, 738, page.width, 4, true);
+  color(1, 1, 1);
+  rect(44, 768, 64, 44, false);
+  text("FM", 58, 785, 18, "F2");
+  text("Travel", 58, 773, 10, "F2");
+  text("FM Travel | TourFlow AI", 126, 794, 14, "F2");
+  text("Yeni Rotalar, Yeni Anılar", 126, 776, 10, "F1");
+  color(0.86, 0.64, 0.25);
+  text("Profesyonel Tur Operasyon Belgesi", 370, 792, 9, "F2");
+
+  color(0.06, 0.13, 0.1);
+  text(title, page.margin, 708, 18, "F2");
+  color(0.36, 0.43, 0.39);
+  text(`Oluşturulma tarihi: ${createdAt}`, page.margin, 688, 9, "F1");
+  text(`Tur No: ${content.tourId || "-"}`, 438, 688, 9, "F1");
+
+  let y = 652;
+  const drawSectionTitle = (label) => {
+    color(0.02, 0.28, 0.2);
+    text(label, page.margin, y, 12, "F2");
+    color(0.86, 0.64, 0.25);
+    line(page.margin, y - 6, page.width - page.margin, y - 6);
+    y -= 24;
+  };
+  const drawRows = (rows) => {
+    for (const [label, value] of rows) {
+      if (y < 150) break;
+      color(0.96, 0.98, 0.96);
+      rect(page.margin, y - 9, page.width - page.margin * 2, 24, true);
+      color(0.82, 0.88, 0.84);
+      rect(page.margin, y - 9, page.width - page.margin * 2, 24, false);
+      color(0.06, 0.13, 0.1);
+      text(label, page.margin + 10, y, 9, "F2");
+      drawWrapped(value, page.margin + 170, y, 56, 9, "F1", 10);
+      y -= 28;
+    }
+  };
+  const drawTable = (table) => {
+    if (table.title) drawSectionTitle(table.title);
+    if (table.headers?.length) {
+      color(0.02, 0.28, 0.2);
+      rect(page.margin, y - 10, page.width - page.margin * 2, 24, true);
+      color(1, 1, 1);
+      const colWidth = (page.width - page.margin * 2) / table.headers.length;
+      table.headers.forEach((header, index) => text(header, page.margin + 8 + index * colWidth, y, 8.5, "F2"));
+      y -= 26;
+      for (const row of table.rows || []) {
+        if (y < 150) break;
+        color(1, 1, 1);
+        rect(page.margin, y - 10, page.width - page.margin * 2, 28, true);
+        color(0.86, 0.9, 0.87);
+        rect(page.margin, y - 10, page.width - page.margin * 2, 28, false);
+        color(0.06, 0.13, 0.1);
+        row.forEach((cell, index) => drawWrapped(cell, page.margin + 8 + index * colWidth, y + 2, Math.floor(colWidth / 5.1), 7.6, "F1", 8.5));
+        y -= 30;
+      }
+    } else {
+      drawRows(table.rows || []);
+    }
+  };
+
+  for (const table of content.tables || []) drawTable(table);
+  if (content.notes?.length && y > 180) {
+    drawSectionTitle("Notlar");
+    for (const note of content.notes) {
+      y = drawWrapped(`• ${note}`, page.margin, y, 92, 8.5, "F1", 11);
+    }
+  }
+
+  drawQr(qrText, 464, 72, 76);
+  color(0.86, 0.64, 0.25);
+  line(page.margin, 54, page.width - page.margin, 54);
+  color(0.36, 0.43, 0.39);
+  text("FM Travel | TourFlow AI - Yeni Rotalar, Yeni Anılar", page.margin, 34, 8, "F1");
+  text("Sayfa 1 / 1", 500, 34, 8, "F1");
+
+  const stream = ops.join("\n");
   const objects = [
     "1 0 obj << /Type /Catalog /Pages 2 0 R >> endobj",
     "2 0 obj << /Type /Pages /Kids [3 0 R] /Count 1 >> endobj",
-    "3 0 obj << /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R >> endobj",
+    "3 0 obj << /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 4 0 R /F2 6 0 R >> >> /Contents 5 0 R >> endobj",
     "4 0 obj << /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding << /Type /Encoding /Differences [128 /Gbreve /gbreve /Idotaccent /dotlessi /Scedilla /scedilla /Ccedilla /ccedilla /Odieresis /odieresis /Udieresis /udieresis] >> >> endobj",
-    `5 0 obj << /Length ${Buffer.byteLength(stream)} >> stream\n${stream}\nendstream endobj`
+    `5 0 obj << /Length ${Buffer.byteLength(stream)} >> stream\n${stream}\nendstream endobj`,
+    "6 0 obj << /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding << /Type /Encoding /Differences [128 /Gbreve /gbreve /Idotaccent /dotlessi /Scedilla /scedilla /Ccedilla /ccedilla /Odieresis /odieresis /Udieresis /udieresis] >> >> endobj"
   ];
   let body = "%PDF-1.4\n";
   const offsets = [0];
@@ -915,6 +1056,112 @@ function documentLines(type, tour, participantRows, participantId) {
   throw new Error("Invalid document type");
 }
 
+function documentLines(type, tour, participantRows, participantId) {
+  const participants = participantRows.map(mapParticipant);
+  const participant = participantId
+    ? participants.find((item) => Number(item.id) === Number(participantId))
+    : participants[0];
+  if ((type === "registration" || type === "deposit") && !participant) {
+    throw new Error("Participant not found");
+  }
+
+  const departurePoint = "FM Travel ofisi";
+  const qrText = `/admin/tours/${tour.id}`;
+  const moneyText = (value) => `${Number(value || 0).toLocaleString("tr-TR")} TL`;
+  const createdDate = new Date().toLocaleDateString("tr-TR");
+
+  if (type === "registration") {
+    return {
+      title: "Tur Kayıt ve Katılım Onay Belgesi",
+      filename: `tur-kayit-${tour.id}-${participant.id}.pdf`,
+      tourId: tour.id,
+      qrText,
+      tables: [{
+        title: "Katılımcı ve Tur Bilgileri",
+        rows: [
+          ["Ad Soyad", participant.name],
+          ["Telefon", participant.phone],
+          ["Tur Adı", tour.title],
+          ["Tur Tarihi", tour.startDate],
+          ["Kalkış Noktası", departurePoint],
+          ["Toplam Ücret", moneyText(participant.totalPrice)],
+          ["Kapora", moneyText(participant.depositPaid)],
+          ["Kalan Ödeme", moneyText(participant.remainingPayment)]
+        ]
+      }],
+      notes: ["Bu belge FM Travel operasyon kaydı için hazırlanmıştır.", "Tur detayları ve ödeme durumu operasyon panelinden takip edilir."]
+    };
+  }
+
+  if (type === "deposit") {
+    return {
+      title: "Kapora Belgesi",
+      filename: `kapora-${tour.id}-${participant.id}.pdf`,
+      tourId: tour.id,
+      qrText,
+      tables: [{
+        title: "Tahsilat Bilgileri",
+        rows: [
+          ["Ad Soyad", participant.name],
+          ["Tur Adı", tour.title],
+          ["Tur Tarihi", tour.startDate],
+          ["Tahsil Edilen Tutar", moneyText(participant.depositPaid)],
+          ["Kalan Ödeme", moneyText(participant.remainingPayment)],
+          ["Tahsil Tarihi", createdDate]
+        ]
+      }],
+      notes: ["Kapora tutarı toplam tur ücretinden düşülür.", "Kalan ödeme tur operasyon takvimine göre takip edilir."]
+    };
+  }
+
+  if (type === "participants") {
+    return {
+      title: "Katılımcı Listesi",
+      filename: `katilimci-listesi-${tour.id}.pdf`,
+      tourId: tour.id,
+      qrText,
+      tables: [
+        {
+          title: "Tur Özeti",
+          rows: [["Tur Adı", tour.title], ["Tur Tarihi", tour.startDate], ["Kalkış Noktası", departurePoint]]
+        },
+        {
+          title: "Katılımcılar",
+          headers: ["Koltuk", "Ad Soyad", "Telefon", "Kapora", "Kalan", "Durum"],
+          rows: participants.map((item) => [item.seatNumber || "-", item.name, item.phone, moneyText(item.depositPaid), moneyText(item.remainingPayment), item.status])
+        }
+      ]
+    };
+  }
+
+  if (type === "program") {
+    const programRows = (tour.hourlyProgram?.length ? tour.hourlyProgram : tour.program).map((item, index) => {
+      const match = String(item).match(/^(\d{1,2}:\d{2})\s+(.+)$/);
+      return match ? [match[1], match[2].split(",")[0], match[2]] : [`${index + 1}.`, tour.places[index % Math.max(tour.places.length, 1)] || "Program", String(item)];
+    });
+    return {
+      title: "Tur Programı",
+      filename: `tur-programi-${tour.id}.pdf`,
+      tourId: tour.id,
+      qrText,
+      tables: [
+        {
+          title: "Tur Bilgileri",
+          rows: [["Tur Adı", tour.title], ["Tur Tarihi", tour.startDate], ["Kalkış Noktası", departurePoint]]
+        },
+        {
+          title: "Saatlik Program",
+          headers: ["Saat", "Durak", "Açıklama"],
+          rows: programRows
+        }
+      ],
+      notes: ["Ulaşım, zorunlu sigorta, planlanan program akışı ve operasyon takibi FM Travel tarafından koordine edilir."]
+    };
+  }
+
+  throw new Error("Invalid document type");
+}
+
 function createTourFromPlan(plan, options = {}) {
   if (!plan.distance || plan.distance.missing || plan.distance.outboundKm === null || plan.distance.returnKm === null) {
     throw new Error("Kilometre bilgisi eksik, lütfen Google Maps üzerinden gidiş ve dönüş km girin.");
@@ -1051,7 +1298,7 @@ async function handleApi(req, res, pathname) {
       const participantRows = getParticipants().filter((row) => Number(row.tour_id) === Number(tour.id));
       const url = new URL(req.url, `http://${req.headers.host}`);
       const document = documentLines(documentMatch[2], tour, participantRows, url.searchParams.get("participantId"));
-      sendPdf(res, document.filename, document.title, document.lines);
+      sendPdf(res, document.filename, document.title, document);
     } catch (error) {
       sendJson(res, 400, { error: error.message });
     }
