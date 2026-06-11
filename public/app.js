@@ -17,7 +17,7 @@ function fmTravelLogoHtml(className = "") {
   return `
     <span class="fm-logo ${className}">
       <img src="${fmTravelLogoPath}" alt="FM Travel" onerror="this.hidden=true; this.nextElementSibling.hidden=false" />
-      <span class="fm-logo-fallback" hidden>FM Travel</span>
+      <span class="fm-logo-fallback" hidden><span>FM</span><small>Travel</small></span>
     </span>
   `;
 }
@@ -648,16 +648,30 @@ function renderAdminLogin(message = "") {
           <p>Lead, tur, kapora ve operasyon yönetimini güvenle kontrol edin.</p>
         </div>
         <div class="auth-proof-grid">
-          <article><strong>Lead</strong><span>Yeni talepleri takip edin</span></article>
-          <article><strong>Tur</strong><span>Program ve katılımcıları yönetin</span></article>
-          <article><strong>Kapora</strong><span>Ödeme durumunu kontrol edin</span></article>
-          <article><strong>WhatsApp</strong><span>Mesaj linklerini hazırlayın</span></article>
+          <article>
+            <i class="auth-feature-icon">📋</i>
+            <div><strong>Lead Yönetimi</strong><span>Yeni müşteri taleplerini yönetin</span></div>
+          </article>
+          <article>
+            <i class="auth-feature-icon">🚌</i>
+            <div><strong>Tur Yönetimi</strong><span>Program ve katılımcıları takip edin</span></div>
+          </article>
+          <article>
+            <i class="auth-feature-icon">💰</i>
+            <div><strong>Kapora Takibi</strong><span>Ödeme durumlarını kontrol edin</span></div>
+          </article>
+          <article>
+            <i class="auth-feature-icon">📱</i>
+            <div><strong>WhatsApp Merkezi</strong><span>Bilgilendirme mesajları oluşturun</span></div>
+          </article>
         </div>
       </section>
 
       <section class="panel auth-card">
         <div class="auth-card-head">
+          <span class="auth-secure-icon" aria-hidden="true"></span>
           <span class="badge green">Güvenli giriş</span>
+          <p class="auth-kicker">FM Travel Operasyon Merkezi</p>
           <h2>Admin girişi</h2>
           <p class="muted">TourFlow AI operasyon paneline devam etmek için bilgilerinizi girin.</p>
         </div>
