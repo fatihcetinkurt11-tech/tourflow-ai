@@ -8,6 +8,7 @@ let deposits = [];
 let leads = [];
 let summary = null;
 let costRules = [];
+let adminSession = null;
 
 const leadConvertEndpoint = (leadId) => `/api/leads/${leadId}/convert`;
 
@@ -41,6 +42,10 @@ async function api(path, options) {
   });
   if (!response.ok) {
     const payload = await response.json().catch(() => ({}));
+    if (response.status === 401 && location.pathname.startsWith("/admin")) {
+      adminSession = { authenticated: false };
+      renderAdminLogin();
+    }
     throw new Error(payload.error || "Istek tamamlanamadi");
   }
   return response.json();
@@ -383,6 +388,164 @@ function renderPublic() {
   `;
 }
 
+function renderPublicPremium() {
+  const popularRoutes = [
+    ["Halfeti", "Firat kiyisinda tekne, Rumkale ve sakin sokaklarla butik bir gun."],
+    ["Arsuz", "Akdeniz sahili, gastronomi molalari ve ferah gunubirlik kacamak."],
+    ["Kapadokya", "Vadiler, tas oteller ve fotograf duraklariyla premium rota."],
+    ["Trabzon", "Yaylalar, Uzungol, Sumela ve Karadeniz dogasina ozel plan."],
+    ["Darende", "Somuncu Baba, Tohma Kanyonu ve huzurlu kultur rotasi."],
+    ["Sanliurfa", "Balikligol, Gobeklitepe ve lezzet duraklariyla dolu kesif."]
+  ];
+
+  app.innerHTML = `
+    <div class="public-shell">
+      <header class="public-header">
+        <a class="brand" href="/" data-link>
+          <span class="brand-mark">TF</span>
+          <span><strong>TourFlow AI</strong><small>Powered by FM Travel</small></span>
+        </a>
+        <a class="link-btn" href="/admin" data-link>FM Travel Admin Paneli</a>
+      </header>
+
+      <main class="public-main">
+        <section class="premium-hero">
+          <div class="hero-bg" aria-hidden="true"></div>
+          <section class="hero-copy">
+            <p class="eyebrow">Premium seyahat teknolojisi</p>
+            <h1>Hayalindeki geziyi yaz, sana özel tur planını saniyeler içinde oluşturalım.</h1>
+            <p class="lead">TourFlow AI, seyahat isteğini analiz eder; rota, program, tahmini maliyet ve özel tur teklifini senin için hazırlar. FM Travel ekibi ise bu planı gerçeğe dönüştürür.</p>
+            <a class="btn hero-cta" href="#ai-planner">Ücretsiz gezi planı oluştur</a>
+            <div class="hero-points">
+              <span>AI rota</span>
+              <span>Premium teklif</span>
+              <span>FM Travel takibi</span>
+            </div>
+          </section>
+
+          <aside class="hero-preview">
+            <span class="badge sun">Özel plan</span>
+            <strong>Kahramanmaraş çıkışlı VIP tur akışı</strong>
+            <p>Rota, maliyet ve teklif süreci tek ekranda hazırlanır.</p>
+          </aside>
+        </section>
+
+        <section class="section-wrap planner-section" id="ai-planner">
+          <div class="section-heading">
+            <p class="eyebrow">AI gezi planlama</p>
+            <h2>İsteğini yaz, ilk taslağı anında gör.</h2>
+            <p class="muted">Doğal dille anlat; TourFlow AI rotayı, programı ve tahmini bütçeyi çıkarır.</p>
+          </div>
+          <div class="planner-stage premium-planner-grid">
+            <section class="panel planner-card">
+              <div class="panel-header"><h2>TourFlow AI asistanı</h2><span class="badge green">Sohbet</span></div>
+              <form class="form ai-chat-form" id="public-ai-form">
+                <label>Seyahat isteğini yaz
+                  <textarea name="message" required>16 kişi Kahramanmaraş çıkışlı Darende günübirlik tur istiyoruz.</textarea>
+                </label>
+                <button class="btn" type="submit">Ücretsiz gezi planı oluştur</button>
+                <p class="muted" id="public-ai-status"></p>
+              </form>
+            </section>
+
+            <aside class="sample-plan-card premium-output-card">
+              <p class="eyebrow">Örnek çıktı</p>
+              <h2>Darende Günübirlik Tur</h2>
+              <div class="output-list">
+                <div><span>Rota</span><strong>Kahramanmaraş - Darende - Tohma</strong></div>
+                <div><span>Program</span><strong>Somuncu Baba, kanyon yürüyüşü, öğle molası</strong></div>
+                <div><span>Tahmini bütçe</span><strong>Kişi başı teklif taslağı</strong></div>
+                <div><span>FM Travel teklif süreci</span><strong>Telefon bırakan misafir için özel takip</strong></div>
+              </div>
+            </aside>
+          </div>
+        </section>
+
+        <section class="section-wrap quick-lead-section">
+          <div class="section-heading">
+            <p class="eyebrow">Hızlı başlangıç</p>
+            <h2>Detayları biliyorsan hemen talep oluştur.</h2>
+          </div>
+          <section class="panel compact-form-card">
+            <div class="panel-header"><h2>Hızlı bilgi alanı</h2></div>
+            <form class="form" id="planner-form">
+              <label>Nereye gitmek istiyorum
+                <input name="destination" value="Darende" required />
+              </label>
+              <div class="form-grid">
+                <label>Kaç kişi
+                  <input name="groupSize" type="number" min="1" value="16" required />
+                </label>
+                <label>Kaç gün
+                  <input name="durationDays" type="number" min="1" value="1" required />
+                </label>
+              </div>
+              <label>Bütçem
+                <input name="budget" type="number" min="1000" value="9000" required />
+              </label>
+              <button class="btn" type="submit">Gezi talebi oluştur</button>
+              <p class="muted" id="planner-status"></p>
+            </form>
+          </section>
+        </section>
+
+        <section class="section-wrap trust-section">
+          <div class="section-heading">
+            <p class="eyebrow">Güven veren operasyon</p>
+            <h2>Plan sadece güzel görünmez, uygulanabilir hazırlanır.</h2>
+          </div>
+          <div class="feature-grid">
+            ${["Kahramanmaraş çıkışlı özel turlar", "VIP araç organizasyonu", "Kapora ile ön kayıt", "Kişiye özel tur planlama", "AI destekli hızlı teklif"].map((item) => `
+              <article class="feature-card"><span></span><strong>${item}</strong><p>FM Travel operasyon deneyimiyle desteklenen net ve takip edilebilir süreç.</p></article>
+            `).join("")}
+          </div>
+        </section>
+
+        <section class="section-wrap routes-section">
+          <div class="section-heading">
+            <p class="eyebrow">Popüler rotalar</p>
+            <h2>En çok istenen turlar için tek dokunuşla başla.</h2>
+          </div>
+          <div class="route-grid">
+            ${popularRoutes.map(([name, description]) => `
+              <article class="route-card">
+                <div>
+                  <span class="badge green">${name}</span>
+                  <h3>${name}</h3>
+                  <p>${description}</p>
+                </div>
+                <button class="link-btn" type="button" data-route-plan="${name}">Plan oluştur</button>
+              </article>
+            `).join("")}
+          </div>
+        </section>
+
+        <section class="section-wrap how-section">
+          <div class="section-heading">
+            <p class="eyebrow">Nasıl çalışır?</p>
+            <h2>Dört adımda fikirden teklife.</h2>
+          </div>
+          <div class="steps-grid">
+            ${["Gezi isteğini yaz", "AI sana rota ve program çıkarsın", "Telefonunu bırak", "FM Travel sana özel teklif için ulaşsın"].map((step, index) => `
+              <article class="step-card"><span>${index + 1}</span><strong>${step}</strong></article>
+            `).join("")}
+          </div>
+        </section>
+
+        <section class="final-cta">
+          <div>
+            <p class="eyebrow">Akıllı seyahat planlama</p>
+            <h2>Bir sonraki yolculuğunu rastgele değil, akıllı planla.</h2>
+          </div>
+          <a class="btn" href="#ai-planner">Şimdi gezi planımı oluştur</a>
+        </section>
+      </main>
+
+      ${plannerResult ? plannerResultHtml(plannerResult) : ""}
+    </div>
+  `;
+}
+
 async function refreshAdmin() {
   const [summaryResult, toursResult, participantsResult, depositsResult, leadsResult, costRulesResult] = await Promise.allSettled([
     api("/api/admin/summary"),
@@ -408,6 +571,34 @@ async function refreshAdmin() {
         openDeposits: deposits.filter((row) => Number(row.remainingDeposit || 0) > 0).length,
         profit: tours.reduce((sum, tour) => sum + Number(tour.totals?.profit || 0), 0)
       };
+}
+
+async function requireAdminSession() {
+  if (adminSession?.authenticated) return true;
+  adminSession = await api("/api/admin/session");
+  return Boolean(adminSession.authenticated);
+}
+
+function renderAdminLogin(message = "") {
+  app.innerHTML = `
+    <div class="auth-shell">
+      <section class="panel auth-card">
+        <div class="panel-header">
+          <div>
+            <p class="eyebrow">Admin girisi</p>
+            <h1>TourFlow AI</h1>
+          </div>
+          <span class="brand-mark">TF</span>
+        </div>
+        <form class="form" id="admin-login-form">
+          <label>Kullanici adi <input name="username" value="admin" autocomplete="username" required /></label>
+          <label>Sifre <input name="password" type="password" autocomplete="current-password" required /></label>
+          <button class="btn" type="submit">Giris yap</button>
+          <p class="muted" id="admin-login-status">${escapeHtml(message)}</p>
+        </form>
+      </section>
+    </div>
+  `;
 }
 
 function adminShell(view, title, body) {
@@ -444,6 +635,7 @@ function adminShell(view, title, body) {
             <span class="badge sky">${summary.participants} katılımcı</span>
             <span class="badge sun">${summary.openDeposits} açık kapora</span>
             <span class="badge clay">${summary.leads} lead</span>
+            <button class="link-btn logout-btn" type="button" data-admin-logout>Cikis yap</button>
           </div>
         </header>
         <section class="view">${body}</section>
@@ -522,6 +714,73 @@ function whatsappPhone(phone) {
 function leadWhatsappUrl(lead) {
   const phone = whatsappPhone(lead.phone);
   return `https://wa.me/${phone}?text=${encodeURIComponent(leadWhatsappMessage(lead))}`;
+}
+
+const participantWhatsappTemplates = {
+  depositReminder: "Kapora hatirlatma mesaji",
+  tourInfo: "Tur bilgilendirme mesaji",
+  departureTime: "Hareket saati mesaji",
+  remainingPayment: "Kalan odeme hatirlatma mesaji"
+};
+
+function participantWhatsappMessage(type, tour, participant, logistics) {
+  const name = participant.name || "degerli misafirimiz";
+  const tourName = tour.title || tour.destination;
+  const tourDate = tour.startDate || "-";
+  const deposit = money(participant.depositPaid);
+  const remainingPayment = money(participant.remainingPayment);
+  const departureTime = logistics.departureTime || "-";
+  const departurePoint = logistics.departurePoint || "-";
+
+  const fields = `
+
+Ad Soyad: ${name}
+Tur Adi: ${tourName}
+Tur Tarihi: ${tourDate}
+Kapora: ${deposit}
+Kalan odeme: ${remainingPayment}
+Kalkis saati: ${departureTime}
+Kalkis noktasi: ${departurePoint}`;
+
+  if (type === "depositReminder") {
+    return `Merhaba ${name}, ${tourName} turu icin kapora durumunuzu hatirlatmak isteriz. Rezervasyonun netlesmesi icin kapora odemenizi tamamlayabilirsiniz.${fields}`;
+  }
+  if (type === "tourInfo") {
+    return `Merhaba ${name}, ${tourName} turunuz icin bilgilendirme mesajidir. Tur tarihimiz ${tourDate}. Kalkis noktasi ve hareket bilgileri asagidadir.${fields}`;
+  }
+  if (type === "departureTime") {
+    return `Merhaba ${name}, ${tourName} turu hareket saati hatirlatmasidir. Lutfen ${departureTime} saatinde ${departurePoint} noktasinda hazir olunuz.${fields}`;
+  }
+  return `Merhaba ${name}, ${tourName} turu icin kalan odeme hatirlatmasidir. Kalan odeme tutariniz ${remainingPayment}. Tur oncesinde odemenizi tamamlayabilirsiniz.${fields}`;
+}
+
+function participantWhatsappLinksHtml(type, tour, tourParticipants, logistics) {
+  if (!tourParticipants.length) {
+    return '<div class="warning-box">WhatsApp linki olusturmak icin once katilimci ekleyin.</div>';
+  }
+
+  return `
+    <div class="whatsapp-result-head">
+      <strong>${escapeHtml(participantWhatsappTemplates[type] || participantWhatsappTemplates.depositReminder)}</strong>
+      <span class="badge green">${tourParticipants.length} katilimci</span>
+    </div>
+    <div class="whatsapp-link-list">
+      ${tourParticipants.map((participant) => {
+        const phone = whatsappPhone(participant.phone);
+        const message = participantWhatsappMessage(type, tour, participant, logistics);
+        const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+        return `
+          <article class="whatsapp-link-card">
+            <div>
+              <strong>${escapeHtml(participant.name)}</strong>
+              <p class="muted">${escapeHtml(participant.phone)} · ${money(participant.remainingPayment)} kalan odeme</p>
+            </div>
+            <a class="btn secondary ${phone ? "" : "disabled-link"}" href="${phone ? url : "#"}" target="_blank" rel="noopener">WhatsApp'ta ac</a>
+          </article>
+        `;
+      }).join("")}
+    </div>
+  `;
 }
 
 function participantPaymentBadge(status) {
@@ -680,6 +939,17 @@ async function renderAdminDashboard() {
         <div class="tour-list">${tours.slice(0, 3).map(tourCard).join("") || '<p class="empty">Henüz tur yok.</p>'}</div>
       </section>
     </div>
+    <section class="panel">
+      <div class="panel-header"><h2>Admin sifresi</h2><span class="badge sky">SQLite</span></div>
+      <form class="form" id="admin-password-form">
+        <div class="form-grid">
+          <label>Mevcut sifre <input name="currentPassword" type="password" autocomplete="current-password" required /></label>
+          <label>Yeni sifre <input name="newPassword" type="password" autocomplete="new-password" minlength="6" required /></label>
+        </div>
+        <button class="btn secondary" type="submit">Sifreyi degistir</button>
+        <p class="muted" id="admin-password-status"></p>
+      </form>
+    </section>
   `);
 }
 
@@ -903,6 +1173,24 @@ async function renderTourDetail(id) {
         </table>
       </div>
     </section>
+    <section class="panel whatsapp-bulk-panel" data-tour-whatsapp="${tour.id}">
+      <div class="panel-header"><h2>WhatsApp toplu mesaj</h2><span class="badge green">Manuel gonderim</span></div>
+      <div class="item-list">
+        <div class="form-grid">
+          <label>Kalkis saati <input name="departureTime" type="time" value="08:00" data-whatsapp-departure-time /></label>
+          <label>Kalkis noktasi <input name="departurePoint" value="FM Travel ofisi" data-whatsapp-departure-point /></label>
+        </div>
+        <div class="whatsapp-template-actions">
+          <button class="btn secondary" type="button" data-whatsapp-template="depositReminder">Kapora hatirlatma mesaji</button>
+          <button class="btn secondary" type="button" data-whatsapp-template="tourInfo">Tur bilgilendirme mesaji</button>
+          <button class="btn secondary" type="button" data-whatsapp-template="departureTime">Hareket saati mesaji</button>
+          <button class="btn secondary" type="button" data-whatsapp-template="remainingPayment">Kalan odeme hatirlatma mesaji</button>
+        </div>
+        <div class="whatsapp-link-results" aria-live="polite">
+          <p class="empty">Bir mesaj sablonu secildiginde her katilimci icin ayri WhatsApp linki burada olusur.</p>
+        </div>
+      </div>
+    </section>
   `);
 }
 
@@ -1027,6 +1315,10 @@ async function renderWhatsapp() {
 async function render() {
   try {
     const route = location.pathname;
+    if (route.startsWith("/admin") && !(await requireAdminSession())) {
+      renderAdminLogin();
+      return;
+    }
     const leadDetailRoute = route.match(/^\/admin\/leads\/(\d+)$/);
     const tourDetailRoute = route.match(/^\/admin\/tours\/(\d+)$/);
     if (leadDetailRoute) return await renderLeadDetail(leadDetailRoute[1]);
@@ -1038,7 +1330,7 @@ async function render() {
     if (route === "/admin/deposits") return await renderDeposits();
     if (route === "/admin/profit") return await renderProfit();
     if (route === "/admin/whatsapp") return await renderWhatsapp();
-    return renderPublic();
+    return renderPublicPremium();
   } catch (error) {
     app.innerHTML = `
       <div class="public-shell">
@@ -1058,6 +1350,49 @@ async function render() {
 }
 
 document.addEventListener("click", (event) => {
+  const routePlanButton = event.target.closest("[data-route-plan]");
+  if (routePlanButton) {
+    event.preventDefault();
+    const route = routePlanButton.dataset.routePlan;
+    const textarea = document.querySelector("#public-ai-form textarea[name='message']");
+    if (textarea) {
+      textarea.value = `16 kişi Kahramanmaraş çıkışlı ${route} turu istiyoruz. Bize özel rota, program ve tahmini maliyet çıkar.`;
+      document.querySelector("#ai-planner")?.scrollIntoView({ behavior: "smooth", block: "start" });
+      textarea.focus();
+    }
+    return;
+  }
+
+  const whatsappTemplateButton = event.target.closest("[data-whatsapp-template]");
+  if (whatsappTemplateButton) {
+    event.preventDefault();
+    const panel = whatsappTemplateButton.closest("[data-tour-whatsapp]");
+    const tourId = Number(panel?.dataset.tourWhatsapp);
+    const tour = tours.find((item) => Number(item.id) === tourId);
+    const tourParticipants = participants.filter((item) => Number(item.tourId) === tourId);
+    const results = panel?.querySelector(".whatsapp-link-results");
+    if (!panel || !tour || !results) return;
+
+    panel.querySelectorAll("[data-whatsapp-template]").forEach((button) => button.classList.remove("active"));
+    whatsappTemplateButton.classList.add("active");
+    results.innerHTML = participantWhatsappLinksHtml(whatsappTemplateButton.dataset.whatsappTemplate, tour, tourParticipants, {
+      departureTime: panel.querySelector("[data-whatsapp-departure-time]")?.value,
+      departurePoint: panel.querySelector("[data-whatsapp-departure-point]")?.value
+    });
+    return;
+  }
+
+  const logoutButton = event.target.closest("[data-admin-logout]");
+  if (logoutButton) {
+    event.preventDefault();
+    api("/api/admin/logout", { method: "POST", body: JSON.stringify({}) })
+      .finally(() => {
+        adminSession = { authenticated: false };
+        navigate("/admin");
+      });
+    return;
+  }
+
   const convertButton = event.target.closest("[data-convert-lead]");
   if (convertButton) {
     event.preventDefault();
@@ -1136,6 +1471,40 @@ document.addEventListener("change", async (event) => {
 
 document.addEventListener("submit", async (event) => {
   event.preventDefault();
+
+  if (event.target.id === "admin-login-form") {
+    const form = event.target;
+    const button = form.querySelector("button[type='submit']");
+    const status = form.querySelector("#admin-login-status");
+    button.disabled = true;
+    status.textContent = "Giris kontrol ediliyor.";
+    try {
+      adminSession = await api("/api/admin/login", { method: "POST", body: JSON.stringify(payload(form)) });
+      await render();
+    } catch (error) {
+      button.disabled = false;
+      status.textContent = error.message;
+    }
+    return;
+  }
+
+  if (event.target.id === "admin-password-form") {
+    const form = event.target;
+    const status = form.querySelector("#admin-password-status");
+    const button = form.querySelector("button[type='submit']");
+    button.disabled = true;
+    status.textContent = "Sifre guncelleniyor.";
+    try {
+      await api("/api/admin/password", { method: "POST", body: JSON.stringify(payload(form)) });
+      form.reset();
+      status.textContent = "Sifre guncellendi.";
+    } catch (error) {
+      status.textContent = error.message;
+    } finally {
+      button.disabled = false;
+    }
+    return;
+  }
 
   if (event.target.id === "public-ai-form") {
     const form = event.target;

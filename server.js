@@ -1,6 +1,7 @@
 const http = require("http");
 const fs = require("fs");
 const path = require("path");
+const crypto = require("crypto");
 const { URL } = require("url");
 const { DatabaseSync } = require("node:sqlite");
 
@@ -9,10 +10,16 @@ const ROOT_DIR = __dirname;
 const PUBLIC_DIR = path.join(ROOT_DIR, "public");
 const DATA_DIR = path.join(ROOT_DIR, "data");
 const DB_PATH = path.join(DATA_DIR, "tourflow.sqlite");
+const SESSION_COOKIE = "tourflow_admin_session";
+const SESSION_TTL_MS = 1000 * 60 * 60 * 8;
 
 fs.mkdirSync(DATA_DIR, { recursive: true });
 
 const registeredRoutes = [
+  "GET /api/admin/session",
+  "POST /api/admin/login",
+  "POST /api/admin/logout",
+  "POST /api/admin/password",
   "POST /api/assistant/plan",
   "POST /api/admin/assistant/tours",
   "POST /api/planner",
@@ -102,7 +109,36 @@ db.exec(`
     enabled INTEGER NOT NULL DEFAULT 1,
     sort_order INTEGER NOT NULL DEFAULT 0
   );
+
+  CREATE TABLE IF NOT EXISTS admin_users (
+    username TEXT PRIMARY KEY,
+    password_hash TEXT NOT NULL,
+    password_salt TEXT NOT NULL,
+    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+  );
 `);
+
+const sessions = new Map();
+
+function hashPassword(password, salt = crypto.randomBytes(16).toString("hex")) {
+  const hash = crypto.pbkdf2Sync(String(password), salt, 120000, 32, "sha256").toString("hex");
+  return { hash, salt };
+}
+
+function verifyPassword(password, user) {
+  if (!user) return false;
+  const { hash } = hashPassword(password, user.password_salt);
+  return crypto.timingSafeEqual(Buffer.from(hash, "hex"), Buffer.from(user.password_hash, "hex"));
+}
+
+function seedAdminUser() {
+  const existing = db.prepare("SELECT username FROM admin_users WHERE username = ?").get("admin");
+  if (existing) return;
+  const { hash, salt } = hashPassword(process.env.ADMIN_PASSWORD || "admin123");
+  db.prepare("INSERT INTO admin_users (username, password_hash, password_salt) VALUES (?, ?, ?)").run("admin", hash, salt);
+}
+
+seedAdminUser();
 
 function ensureColumn(table, column, definition) {
   const columns = db.prepare(`PRAGMA table_info(${table})`).all().map((row) => row.name);
@@ -438,6 +474,70 @@ function sendJson(res, status, payload) {
     "Content-Length": Buffer.byteLength(body)
   });
   res.end(body);
+}
+
+function parseCookies(req) {
+  return Object.fromEntries(String(req.headers.cookie || "")
+    .split(";")
+    .map((part) => part.trim())
+    .filter(Boolean)
+    .map((part) => {
+      const index = part.indexOf("=");
+      return index === -1 ? [part, ""] : [part.slice(0, index), decodeURIComponent(part.slice(index + 1))];
+    }));
+}
+
+function sendSessionCookie(res, token) {
+  res.setHeader("Set-Cookie", `${SESSION_COOKIE}=${encodeURIComponent(token)}; HttpOnly; SameSite=Lax; Path=/; Max-Age=${SESSION_TTL_MS / 1000}`);
+}
+
+function clearSessionCookie(res) {
+  res.setHeader("Set-Cookie", `${SESSION_COOKIE}=; HttpOnly; SameSite=Lax; Path=/; Max-Age=0`);
+}
+
+function getSession(req) {
+  const token = parseCookies(req)[SESSION_COOKIE];
+  if (!token) return null;
+  const session = sessions.get(token);
+  if (!session || session.expiresAt <= Date.now()) {
+    sessions.delete(token);
+    return null;
+  }
+  session.expiresAt = Date.now() + SESSION_TTL_MS;
+  return session;
+}
+
+function createSession(username) {
+  const token = crypto.randomBytes(32).toString("hex");
+  sessions.set(token, {
+    username,
+    expiresAt: Date.now() + SESSION_TTL_MS
+  });
+  return token;
+}
+
+function destroySession(req) {
+  const token = parseCookies(req)[SESSION_COOKIE];
+  if (token) sessions.delete(token);
+}
+
+function isAdminSession(req) {
+  return Boolean(getSession(req));
+}
+
+function isPublicApi(req, pathname) {
+  return (req.method === "GET" && pathname === "/api/admin/session")
+    || (req.method === "POST" && pathname === "/api/admin/login")
+    || (req.method === "POST" && pathname === "/api/admin/logout")
+    || (req.method === "POST" && pathname === "/api/assistant/plan")
+    || (req.method === "POST" && pathname === "/api/planner")
+    || (req.method === "POST" && pathname === "/api/leads");
+}
+
+function requireAdmin(req, res, pathname) {
+  if (isPublicApi(req, pathname) || isAdminSession(req)) return true;
+  sendJson(res, 401, { error: "Admin girisi gerekli" });
+  return false;
 }
 
 function pdfSafe(value) {
@@ -793,6 +893,56 @@ function getLeadById(id) {
 }
 
 async function handleApi(req, res, pathname) {
+  if (req.method === "GET" && pathname === "/api/admin/session") {
+    const session = getSession(req);
+    sendJson(res, 200, { authenticated: Boolean(session), username: session?.username || null });
+    return;
+  }
+
+  if (req.method === "POST" && pathname === "/api/admin/login") {
+    const payload = await readBody(req);
+    const username = String(payload.username || "").trim();
+    const password = String(payload.password || "");
+    const user = db.prepare("SELECT * FROM admin_users WHERE username = ?").get(username);
+    if (username !== "admin" || !verifyPassword(password, user)) {
+      sendJson(res, 401, { error: "Kullanici adi veya sifre hatali" });
+      return;
+    }
+    sendSessionCookie(res, createSession(username));
+    sendJson(res, 200, { authenticated: true, username });
+    return;
+  }
+
+  if (req.method === "POST" && pathname === "/api/admin/logout") {
+    destroySession(req);
+    clearSessionCookie(res);
+    sendJson(res, 200, { authenticated: false });
+    return;
+  }
+
+  if (!requireAdmin(req, res, pathname)) return;
+
+  if (req.method === "POST" && pathname === "/api/admin/password") {
+    const session = getSession(req);
+    const payload = await readBody(req);
+    const currentPassword = String(payload.currentPassword || "");
+    const newPassword = String(payload.newPassword || "");
+    const user = db.prepare("SELECT * FROM admin_users WHERE username = ?").get(session.username);
+    if (!verifyPassword(currentPassword, user)) {
+      sendJson(res, 400, { error: "Mevcut sifre hatali" });
+      return;
+    }
+    if (newPassword.length < 6) {
+      sendJson(res, 400, { error: "Yeni sifre en az 6 karakter olmali" });
+      return;
+    }
+    const { hash, salt } = hashPassword(newPassword);
+    db.prepare("UPDATE admin_users SET password_hash = ?, password_salt = ?, updated_at = CURRENT_TIMESTAMP WHERE username = ?")
+      .run(hash, salt, session.username);
+    sendJson(res, 200, { ok: true });
+    return;
+  }
+
   const documentMatch = pathname.match(/^\/api\/tours\/(\d+)\/documents\/([a-z-]+)\.pdf$/);
   if (req.method === "GET" && documentMatch) {
     const tour = getTourById(documentMatch[1]);
