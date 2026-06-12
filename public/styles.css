@@ -1907,6 +1907,120 @@ select:focus {
   display: block !important;
 }
 
+.caliskan-demo-shell {
+  background: #f5f7fb;
+  color: #102033;
+}
+
+.caliskan-sidebar {
+  background: linear-gradient(180deg, #071a33 0%, #0b2545 58%, #061426 100%);
+  border-right: 4px solid #f97316;
+  color: #ffffff;
+}
+
+.caliskan-demo-shell .brand {
+  align-items: stretch;
+}
+
+.caliskan-logo {
+  border: 1px solid rgba(255, 255, 255, 0.26);
+  border-radius: 8px;
+  display: grid;
+  gap: 6px;
+  padding: 14px;
+  width: 100%;
+}
+
+.caliskan-logo strong {
+  color: #ffffff;
+  font-size: 18px;
+  letter-spacing: 0;
+}
+
+.caliskan-logo small {
+  color: #ffedd5;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.demo-ribbon {
+  background: rgba(249, 115, 22, 0.14);
+  border: 1px solid rgba(249, 115, 22, 0.46);
+  border-radius: 8px;
+  color: #ffedd5;
+  display: block;
+  font-size: 12px;
+  font-weight: 900;
+  line-height: 1.4;
+  margin-top: 18px;
+  padding: 10px 12px;
+}
+
+.caliskan-demo-shell .nav-link.active,
+.caliskan-demo-shell .nav-link:hover {
+  background: #f97316;
+  color: #ffffff;
+}
+
+.caliskan-content {
+  background: #f5f7fb;
+}
+
+.caliskan-topbar {
+  background: #ffffff;
+  border: 1px solid #dbe4ef;
+  border-radius: 8px;
+  box-shadow: 0 14px 38px rgba(7, 26, 51, 0.08);
+  padding: 18px;
+}
+
+.caliskan-topbar h1 {
+  color: #071a33;
+}
+
+.caliskan-demo-shell .eyebrow,
+.caliskan-demo-shell .stat-card strong {
+  color: #f97316;
+}
+
+.caliskan-demo-shell .panel,
+.caliskan-demo-shell .tour-card,
+.caliskan-demo-shell .item,
+.caliskan-demo-shell .metric {
+  border-color: #dbe4ef;
+}
+
+.caliskan-demo-shell .btn {
+  background: #f97316;
+  color: #ffffff;
+}
+
+.caliskan-demo-shell .btn.secondary,
+.caliskan-demo-shell .link-btn {
+  background: #ffffff;
+  border-color: rgba(249, 115, 22, 0.34);
+  color: #0b2545;
+}
+
+.caliskan-demo-shell .badge.sun {
+  background: #ffedd5;
+  color: #9a3412;
+}
+
+.caliskan-demo-shell .badge.sky {
+  background: #dbeafe;
+  color: #0b3b75;
+}
+
+.caliskan-demo-shell .badge.green {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.caliskan-about-panel p {
+  line-height: 1.7;
+}
+
 @media (max-width: 640px) {
   .auth-shell .auth-proof-grid {
     grid-template-columns: 1fr !important;
