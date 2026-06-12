@@ -460,7 +460,7 @@ function renderPublicPremium() {
           <span><strong>TourFlow AI</strong><small>Powered by FM Travel</small></span>
         </a>
         <nav class="public-nav">
-          <a class="link-btn" href="/about" data-link>Hakkımızda</a>
+          <a class="link-btn" href="/about" data-link>Hakk&#305;m&#305;zda</a>
           <a class="link-btn" href="/admin" data-link>FM Travel Admin Paneli</a>
         </nav>
       </header>
@@ -605,28 +605,28 @@ function renderPublicPremium() {
 
 function aboutPageHtml({ admin = false } = {}) {
   const achievements = [
-    "Yapay zeka destekli tur planlama sistemi geliştirildi",
-    "Katılımcı ve müşteri yönetimi sistemi oluşturuldu",
+    "Yapay zeka destekli tur planlama sistemi geli\u015ftirildi",
+    "Kat\u0131l\u0131mc\u0131 ve m\u00fc\u015fteri y\u00f6netimi sistemi olu\u015fturuldu",
     "Kapora takip sistemi eklendi",
-    "WhatsApp bilgilendirme ve iletişim merkezi kuruldu",
-    "PDF kayıt ve operasyon altyapısı geliştirildi",
-    "Maliyet ve kârlılık hesaplama sistemi oluşturuldu",
-    "Bulut altyapısına taşınarak canlı yayına alındı",
-    "FM Travel marka kimliği ve operasyon paneli oluşturuldu"
+    "WhatsApp bilgilendirme ve ileti\u015fim merkezi kuruldu",
+    "PDF kay\u0131t ve operasyon altyap\u0131s\u0131 geli\u015ftirildi",
+    "Maliyet ve k\u00e2rl\u0131l\u0131k hesaplama sistemi olu\u015fturuldu",
+    "Bulut altyap\u0131s\u0131na ta\u015f\u0131narak canl\u0131 yay\u0131na al\u0131nd\u0131",
+    "FM Travel marka kimli\u011fi ve operasyon paneli olu\u015fturuldu"
   ];
   const team = [
-    ["Fatih Çetinkurt", "Kurucu & CEO", "FC"],
-    ["Mahmut Can Usta", "Operasyon Direktörü", "MC"],
-    ["Mustafa İspir", "Operasyon ve Saha Koordinatörü", "Mİ"]
+    ["Fatih \u00c7etinkurt", "Kurucu & CEO", "FC"],
+    ["Mahmut Can Usta", "Operasyon Direkt\u00f6r\u00fc", "MC"],
+    ["Mustafa \u0130spir", "Operasyon ve Saha Koordinat\u00f6r\u00fc", "M\u0130"]
   ];
   const features = [
     "Yapay Zeka Destekli Tur Planlama",
-    "Katılımcı Yönetimi",
+    "Kat\u0131l\u0131mc\u0131 Y\u00f6netimi",
     "Kapora Takibi",
     "WhatsApp Merkezi",
     "PDF Evrak Sistemi",
-    "Maliyet ve Kâr Analizi",
-    "Operasyon Yönetimi"
+    "Maliyet ve K\u00e2r Analizi",
+    "Operasyon Y\u00f6netimi"
   ];
 
   return `
@@ -636,38 +636,38 @@ function aboutPageHtml({ admin = false } = {}) {
           ${fmTravelLogoHtml("about-logo")}
           <p class="eyebrow">Premium seyahat operasyonu</p>
           <h1>FM Travel</h1>
-          <p class="about-slogan">Yeni Rotalar, Yeni Anılar</p>
-          <p>FM Travel, Kahramanmaraş merkezli olarak insanların yeni yerler keşfetmesini, kaliteli ve güvenli seyahat deneyimleri yaşamasını sağlamak amacıyla kurulmuştur.</p>
+          <p class="about-slogan">Yeni Rotalar, Yeni An&#305;lar</p>
+          <p>FM Travel, Kahramanmara&#351; merkezli olarak insanlar&#305;n yeni yerler ke&#351;fetmesini, kaliteli ve g&#252;venli seyahat deneyimleri ya&#351;amas&#305;n&#305; sa&#287;lamak amac&#305;yla kurulmu&#351;tur.</p>
         </div>
         <aside class="about-hero-card">
           <span class="badge sun">Powered by TourFlow AI</span>
-          <strong>Teknolojiyle güçlenen turizm operasyonu</strong>
-          <p>Lead, tur, kapora, PDF, WhatsApp ve maliyet süreçleri tek premium operasyon merkezinde yönetilir.</p>
+          <strong>Teknolojiyle g&#252;&#231;lenen turizm operasyonu</strong>
+          <p>Lead, tur, kapora, PDF, WhatsApp ve maliyet s&#252;re&#231;leri tek premium operasyon merkezinde y&#246;netilir.</p>
         </aside>
       </section>
 
       <section class="about-grid">
         <article class="about-card about-story">
-          <p class="eyebrow">Bölüm 1</p>
+          <p class="eyebrow">B&#246;l&#252;m 1</p>
           <h2>Hikayemiz</h2>
-          <p>TourFlow AI ise FM Travel'ın operasyonlarını daha profesyonel yönetebilmek için geliştirilen yapay zeka destekli tur yönetim sistemidir.</p>
+          <p>TourFlow AI ise FM Travel'&#305;n operasyonlar&#305;n&#305; daha profesyonel y&#246;netebilmek i&#231;in geli&#351;tirilen yapay zeka destekli tur y&#246;netim sistemidir.</p>
         </article>
         <article class="about-card">
-          <p class="eyebrow">Bölüm 2</p>
+          <p class="eyebrow">B&#246;l&#252;m 2</p>
           <h2>Misyonumuz</h2>
-          <p>Misafirlerimize güvenli, kaliteli ve unutulmaz seyahat deneyimleri sunmak. Teknoloji ile turizmi birleştirerek planlama ve organizasyon süreçlerini daha profesyonel hale getirmek.</p>
+          <p>Misafirlerimize g&#252;venli, kaliteli ve unutulmaz seyahat deneyimleri sunmak. Teknoloji ile turizmi birle&#351;tirerek planlama ve organizasyon s&#252;re&#231;lerini daha profesyonel hale getirmek.</p>
         </article>
         <article class="about-card">
-          <p class="eyebrow">Bölüm 3</p>
+          <p class="eyebrow">B&#246;l&#252;m 3</p>
           <h2>Vizyonumuz</h2>
-          <p>Yapay zeka destekli turizm çözümleriyle Türkiye'nin yenilikçi ve güvenilir tur organizasyon markalarından biri olmak.</p>
+          <p>Yapay zeka destekli turizm &#231;&#246;z&#252;mleriyle T&#252;rkiye'nin yenilik&#231;i ve g&#252;venilir tur organizasyon markalar&#305;ndan biri olmak.</p>
         </article>
       </section>
 
       <section class="about-card timeline-card">
         <div class="section-heading">
-          <p class="eyebrow">Neler yaptık?</p>
-          <h2>FM Travel operasyon altyapısı adım adım güçlendirildi.</h2>
+          <p class="eyebrow">Neler yapt&#305;k?</p>
+          <h2>FM Travel operasyon altyap&#305;s&#305; ad&#305;m ad&#305;m g&#252;&#231;lendirildi.</h2>
         </div>
         <div class="about-timeline">
           ${achievements.map((item, index) => `
@@ -681,7 +681,7 @@ function aboutPageHtml({ admin = false } = {}) {
 
       <section class="about-card">
         <div class="section-heading">
-          <p class="eyebrow">Bölüm 4</p>
+          <p class="eyebrow">B&#246;l&#252;m 4</p>
           <h2>Ekibimiz</h2>
         </div>
         <div class="team-grid">
@@ -697,12 +697,12 @@ function aboutPageHtml({ admin = false } = {}) {
 
       <section class="about-grid about-lower-grid">
         <article class="about-card">
-          <p class="eyebrow">Bölüm 5</p>
+          <p class="eyebrow">B&#246;l&#252;m 5</p>
           <h2>Sosyal Medya</h2>
           <a class="instagram-link" href="https://www.instagram.com/fmtraveltr" target="_blank" rel="noreferrer">@fmtraveltr</a>
         </article>
         <article class="about-card tourflow-card">
-          <p class="eyebrow">Bölüm 6</p>
+          <p class="eyebrow">B&#246;l&#252;m 6</p>
           <h2>TourFlow AI</h2>
           <p class="about-powered">Powered by TourFlow AI</p>
           <div class="about-feature-list">
@@ -782,21 +782,21 @@ function renderAdminLogin(message = "") {
           <p>Lead, tur, kapora ve operasyon yönetimini güvenle kontrol edin.</p>
         </div>
         <div class="auth-proof-grid">
-          <article>
-            <i class="auth-feature-icon">📋</i>
-            <div><strong>Lead Yönetimi</strong><span>Yeni müşteri taleplerini yönetin</span></div>
+          <article class="auth-feature-card">
+            <i class="auth-feature-icon">&#128203;</i>
+            <div class="auth-feature-text"><strong>Lead Y&#246;netimi</strong><span>Yeni m&#252;&#351;teri taleplerini y&#246;netin</span></div>
           </article>
-          <article>
-            <i class="auth-feature-icon">🚌</i>
-            <div><strong>Tur Yönetimi</strong><span>Program ve katılımcıları takip edin</span></div>
+          <article class="auth-feature-card">
+            <i class="auth-feature-icon">&#128652;</i>
+            <div class="auth-feature-text"><strong>Tur Y&#246;netimi</strong><span>Program ve kat&#305;l&#305;mc&#305;lar&#305; takip edin</span></div>
           </article>
-          <article>
-            <i class="auth-feature-icon">💰</i>
-            <div><strong>Kapora Takibi</strong><span>Ödeme durumlarını kontrol edin</span></div>
+          <article class="auth-feature-card">
+            <i class="auth-feature-icon">&#128176;</i>
+            <div class="auth-feature-text"><strong>Kapora Takibi</strong><span>&#214;deme durumlar&#305;n&#305; kontrol edin</span></div>
           </article>
-          <article>
-            <i class="auth-feature-icon">📱</i>
-            <div><strong>WhatsApp Merkezi</strong><span>Bilgilendirme mesajları oluşturun</span></div>
+          <article class="auth-feature-card">
+            <i class="auth-feature-icon">&#128241;</i>
+            <div class="auth-feature-text"><strong>WhatsApp Merkezi</strong><span>Bilgilendirme mesajlar&#305; olu&#351;turun</span></div>
           </article>
         </div>
       </section>
@@ -830,7 +830,7 @@ function adminShell(view, title, body) {
     ["deposits", "/admin/deposits", "Kapora"],
     ["profit", "/admin/profit", "Kâr"],
     ["whatsapp", "/admin/whatsapp", "WhatsApp"],
-    ["about", "/admin/about", "Hakkımızda"]
+    ["about", "/admin/about", "Hakk\u0131m\u0131zda"]
   ];
 
   app.innerHTML = `
@@ -1535,7 +1535,7 @@ async function renderWhatsapp() {
 
 async function renderAdminAbout() {
   await refreshAdmin();
-  adminShell("about", "Hakkımızda", aboutPageHtml({ admin: true }));
+  adminShell("about", "Hakk\u0131m\u0131zda", aboutPageHtml({ admin: true }));
 }
 
 async function render() {
