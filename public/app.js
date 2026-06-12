@@ -459,7 +459,10 @@ function renderPublicPremium() {
           ${fmTravelLogoHtml()}
           <span><strong>TourFlow AI</strong><small>Powered by FM Travel</small></span>
         </a>
-        <a class="link-btn" href="/admin" data-link>FM Travel Admin Paneli</a>
+        <nav class="public-nav">
+          <a class="link-btn" href="/about" data-link>Hakk&#305;m&#305;zda</a>
+          <a class="link-btn" href="/admin" data-link>FM Travel Admin Paneli</a>
+        </nav>
       </header>
 
       <main class="public-main">
@@ -600,6 +603,137 @@ function renderPublicPremium() {
   `;
 }
 
+function aboutPageHtml({ admin = false } = {}) {
+  const achievements = [
+    "Yapay zeka destekli tur planlama sistemi geli\u015ftirildi",
+    "Kat\u0131l\u0131mc\u0131 ve m\u00fc\u015fteri y\u00f6netimi sistemi olu\u015fturuldu",
+    "Kapora takip sistemi eklendi",
+    "WhatsApp bilgilendirme ve ileti\u015fim merkezi kuruldu",
+    "PDF kay\u0131t ve operasyon altyap\u0131s\u0131 geli\u015ftirildi",
+    "Maliyet ve k\u00e2rl\u0131l\u0131k hesaplama sistemi olu\u015fturuldu",
+    "Bulut altyap\u0131s\u0131na ta\u015f\u0131narak canl\u0131 yay\u0131na al\u0131nd\u0131",
+    "FM Travel marka kimli\u011fi ve operasyon paneli olu\u015fturuldu"
+  ];
+  const team = [
+    ["Fatih \u00c7etinkurt", "Kurucu & CEO", "FC"],
+    ["Mahmut Can Usta", "Operasyon Direkt\u00f6r\u00fc", "MC"],
+    ["Mustafa \u0130spir", "Operasyon ve Saha Koordinat\u00f6r\u00fc", "M\u0130"]
+  ];
+  const features = [
+    "Yapay Zeka Destekli Tur Planlama",
+    "Kat\u0131l\u0131mc\u0131 Y\u00f6netimi",
+    "Kapora Takibi",
+    "WhatsApp Merkezi",
+    "PDF Evrak Sistemi",
+    "Maliyet ve K\u00e2r Analizi",
+    "Operasyon Y\u00f6netimi"
+  ];
+
+  return `
+    <section class="about-page ${admin ? "about-page-admin" : ""}">
+      <section class="about-hero">
+        <div class="about-hero-copy">
+          ${fmTravelLogoHtml("about-logo")}
+          <p class="eyebrow">Premium seyahat operasyonu</p>
+          <h1>FM Travel</h1>
+          <p class="about-slogan">Yeni Rotalar, Yeni An&#305;lar</p>
+          <p>FM Travel, Kahramanmara&#351; merkezli olarak insanlar&#305;n yeni yerler ke&#351;fetmesini, kaliteli ve g&#252;venli seyahat deneyimleri ya&#351;amas&#305;n&#305; sa&#287;lamak amac&#305;yla kurulmu&#351;tur.</p>
+        </div>
+        <aside class="about-hero-card">
+          <span class="badge sun">Powered by TourFlow AI</span>
+          <strong>Teknolojiyle g&#252;&#231;lenen turizm operasyonu</strong>
+          <p>Lead, tur, kapora, PDF, WhatsApp ve maliyet s&#252;re&#231;leri tek premium operasyon merkezinde y&#246;netilir.</p>
+        </aside>
+      </section>
+
+      <section class="about-grid">
+        <article class="about-card about-story">
+          <p class="eyebrow">B&#246;l&#252;m 1</p>
+          <h2>Hikayemiz</h2>
+          <p>TourFlow AI ise FM Travel'&#305;n operasyonlar&#305;n&#305; daha profesyonel y&#246;netebilmek i&#231;in geli&#351;tirilen yapay zeka destekli tur y&#246;netim sistemidir.</p>
+        </article>
+        <article class="about-card">
+          <p class="eyebrow">B&#246;l&#252;m 2</p>
+          <h2>Misyonumuz</h2>
+          <p>Misafirlerimize g&#252;venli, kaliteli ve unutulmaz seyahat deneyimleri sunmak. Teknoloji ile turizmi birle&#351;tirerek planlama ve organizasyon s&#252;re&#231;lerini daha profesyonel hale getirmek.</p>
+        </article>
+        <article class="about-card">
+          <p class="eyebrow">B&#246;l&#252;m 3</p>
+          <h2>Vizyonumuz</h2>
+          <p>Yapay zeka destekli turizm &#231;&#246;z&#252;mleriyle T&#252;rkiye'nin yenilik&#231;i ve g&#252;venilir tur organizasyon markalar&#305;ndan biri olmak.</p>
+        </article>
+      </section>
+
+      <section class="about-card timeline-card">
+        <div class="section-heading">
+          <p class="eyebrow">Neler yapt&#305;k?</p>
+          <h2>FM Travel operasyon altyap&#305;s&#305; ad&#305;m ad&#305;m g&#252;&#231;lendirildi.</h2>
+        </div>
+        <div class="about-timeline">
+          ${achievements.map((item, index) => `
+            <article>
+              <span>${index + 1}</span>
+              <p>${escapeHtml(item)}</p>
+            </article>
+          `).join("")}
+        </div>
+      </section>
+
+      <section class="about-card">
+        <div class="section-heading">
+          <p class="eyebrow">B&#246;l&#252;m 4</p>
+          <h2>Ekibimiz</h2>
+        </div>
+        <div class="team-grid">
+          ${team.map(([name, role, initials]) => `
+            <article class="team-card">
+              <div class="team-photo">${escapeHtml(initials)}</div>
+              <strong>${escapeHtml(name)}</strong>
+              <span>${escapeHtml(role)}</span>
+            </article>
+          `).join("")}
+        </div>
+      </section>
+
+      <section class="about-grid about-lower-grid">
+        <article class="about-card">
+          <p class="eyebrow">B&#246;l&#252;m 5</p>
+          <h2>Sosyal Medya</h2>
+          <a class="instagram-link" href="https://www.instagram.com/fmtraveltr" target="_blank" rel="noreferrer">@fmtraveltr</a>
+        </article>
+        <article class="about-card tourflow-card">
+          <p class="eyebrow">B&#246;l&#252;m 6</p>
+          <h2>TourFlow AI</h2>
+          <p class="about-powered">Powered by TourFlow AI</p>
+          <div class="about-feature-list">
+            ${features.map((feature) => `<span>${escapeHtml(feature)}</span>`).join("")}
+          </div>
+        </article>
+      </section>
+    </section>
+  `;
+}
+
+function renderPublicAbout() {
+  app.innerHTML = `
+    <div class="public-shell about-public-shell">
+      <header class="public-header">
+        <a class="brand" href="/" data-link>
+          ${fmTravelLogoHtml()}
+          <span><strong>TourFlow AI</strong><small>Powered by FM Travel</small></span>
+        </a>
+        <nav class="public-nav">
+          <a class="link-btn" href="/" data-link>Ana sayfa</a>
+          <a class="link-btn" href="/admin" data-link>FM Travel Admin Paneli</a>
+        </nav>
+      </header>
+      <main class="public-main">
+        ${aboutPageHtml()}
+      </main>
+    </div>
+  `;
+}
+
 async function refreshAdmin() {
   const [summaryResult, toursResult, participantsResult, depositsResult, leadsResult, costRulesResult] = await Promise.allSettled([
     api("/api/admin/summary"),
@@ -649,20 +783,20 @@ function renderAdminLogin(message = "") {
         </div>
         <div class="auth-proof-grid">
           <article>
-            <i class="auth-feature-icon">📋</i>
-            <div><strong>Lead Yönetimi</strong><span>Yeni müşteri taleplerini yönetin</span></div>
+            <i class="auth-feature-icon">&#128203;</i>
+            <div><strong>Lead Y&#246;netimi</strong><span>Yeni m&#252;&#351;teri taleplerini y&#246;netin</span></div>
           </article>
           <article>
-            <i class="auth-feature-icon">🚌</i>
-            <div><strong>Tur Yönetimi</strong><span>Program ve katılımcıları takip edin</span></div>
+            <i class="auth-feature-icon">&#128652;</i>
+            <div><strong>Tur Y&#246;netimi</strong><span>Program ve kat&#305;l&#305;mc&#305;lar&#305; takip edin</span></div>
           </article>
           <article>
-            <i class="auth-feature-icon">💰</i>
-            <div><strong>Kapora Takibi</strong><span>Ödeme durumlarını kontrol edin</span></div>
+            <i class="auth-feature-icon">&#128176;</i>
+            <div><strong>Kapora Takibi</strong><span>&#214;deme durumlar&#305;n&#305; kontrol edin</span></div>
           </article>
           <article>
-            <i class="auth-feature-icon">📱</i>
-            <div><strong>WhatsApp Merkezi</strong><span>Bilgilendirme mesajları oluşturun</span></div>
+            <i class="auth-feature-icon">&#128241;</i>
+            <div><strong>WhatsApp Merkezi</strong><span>Bilgilendirme mesajlar&#305; olu&#351;turun</span></div>
           </article>
         </div>
       </section>
@@ -695,7 +829,8 @@ function adminShell(view, title, body) {
     ["participants", "/admin/participants", "Katılımcılar"],
     ["deposits", "/admin/deposits", "Kapora"],
     ["profit", "/admin/profit", "Kâr"],
-    ["whatsapp", "/admin/whatsapp", "WhatsApp"]
+    ["whatsapp", "/admin/whatsapp", "WhatsApp"],
+    ["about", "/admin/about", "Hakk\u0131m\u0131zda"]
   ];
 
   app.innerHTML = `
@@ -1398,9 +1533,15 @@ async function renderWhatsapp() {
   `);
 }
 
+async function renderAdminAbout() {
+  await refreshAdmin();
+  adminShell("about", "Hakk\u0131m\u0131zda", aboutPageHtml({ admin: true }));
+}
+
 async function render() {
   try {
     const route = location.pathname;
+    if (route === "/about") return renderPublicAbout();
     if (route.startsWith("/admin") && !(await requireAdminSession())) {
       renderAdminLogin();
       return;
@@ -1416,6 +1557,7 @@ async function render() {
     if (route === "/admin/deposits") return await renderDeposits();
     if (route === "/admin/profit") return await renderProfit();
     if (route === "/admin/whatsapp") return await renderWhatsapp();
+    if (route === "/admin/about") return await renderAdminAbout();
     return renderPublicPremium();
   } catch (error) {
     app.innerHTML = `
