@@ -1830,10 +1830,9 @@ function renderNexoraHome() {
               <span>Konum: Kahramanmaraş, Türkiye</span>
               <span>Girişimci &amp; Yazılım Geliştirici</span>
             </div>
-            <p>Fatih Çetinkurt, 2006 yılında doğmuş genç bir girişimci ve yazılım geliştiricisidir.</p>
-            <p>Kahramanmaraş merkezli çalışmalar yürüten Fatih Çetinkurt; turizm teknolojileri, yapay zeka sistemleri, CRM çözümleri, sağlık teknolojileri, otomasyon sistemleri ve marka geliştirme alanlarında çalışmalar yürütmektedir.</p>
+            <p>Fatih Çetinkurt, 2006 yılında doğmuş genç bir girişimci ve yazılım geliştiricisidir. Kahramanmaraş merkezli çalışmalarında yapay zeka destekli iş sistemleri, CRM çözümleri, otomasyon altyapıları ve marka geliştirme projelerine odaklanmaktadır.</p>
             <p>Nexora AI çatısı altında TourFlow AI, Estemar Clinic AI, FM Travel ve Çalışkan Turizm Demo gibi dijital projelerin yanında Artiza ve Freza by Artiza markaları üzerinde de çalışmalarına devam etmektedir.</p>
-            <p>Vizyonu, farklı sektörlerde faaliyet gösteren işletmelere modern, ölçeklenebilir ve yapay zeka destekli sistemler sunarak dijital dönüşümlerine katkı sağlamaktır.</p>
+            <p>Vizyonu, farklı sektörlerde faaliyet gösteren işletmelere modern, ölçeklenebilir ve güven veren yapay zeka destekli sistemler sunarak dijital dönüşümlerine katkı sağlamaktır.</p>
           </div>
         </section>
 
@@ -1853,9 +1852,9 @@ function renderNexoraHome() {
           <article class="nexora-collab-card">
             <div class="nexora-collab-photo"><span>Fotoğraf alanı</span></div>
             <div>
-              <p class="nexora-kicker">Destekçi ve fikir ortağı</p>
+              <p class="nexora-kicker">Destekçi ve Fikir Ortağı</p>
               <h3>Mahmut Can Usta</h3>
-              <p>Mahmut Can Usta, girişimcilik yolculuğunda fikir alışverişi yapılan, destek veren ve projeler üzerine birlikte düşünülen isimlerden biridir.</p>
+              <p>Mahmut Can Usta, kuaförlük alanında çalışmalar yürüten ve girişimcilik yolculuğunda fikir alışverişi yapılan isimlerden biridir. Farklı projeler üzerinde düşünülmüş, marka ve iş fikirleri konusunda karşılıklı destek sağlanmıştır.</p>
             </div>
           </article>
         </section>
