@@ -1733,6 +1733,212 @@ function renderEstemarDemo() {
   return renderEstemarDemoDashboard();
 }
 
+function renderNexoraHome() {
+  const services = [
+    "Yapay zeka destekli yönetim panelleri",
+    "CRM ve müşteri takip sistemleri",
+    "WhatsApp otomasyonları",
+    "PDF teklif ve rapor sistemleri",
+    "Sektöre özel özel yazılım çözümleri"
+  ];
+  const projects = [
+    ["TourFlow AI", "Turizm operasyon ve teklif sistemi"],
+    ["FM Travel", "Canlı turizm operasyon altyapısı"],
+    ["Çalışkan Turizm Demo", "Satış sunumu demo paneli"],
+    ["Estemar Clinic AI", "Klinik CRM ve operasyon demosu"],
+    ["Artiza", "Marka ve dijital ürün projesi"],
+    ["Freza by Artiza", "Perakende marka deneyimi"]
+  ];
+
+  app.innerHTML = `
+    <div class="nexora-shell">
+      <header class="nexora-header">
+        <a class="nexora-brand" href="/nexora" data-link>
+          <span>N</span>
+          <strong>NEXORA AI</strong>
+        </a>
+        <nav>
+          <a href="#services">Hizmetler</a>
+          <a href="#projects">Projeler</a>
+          <a href="#founder">Kurucu</a>
+          <a href="/nexora/community" data-link>Gençler İçin Yol Haritası</a>
+        </nav>
+      </header>
+
+      <main>
+        <section class="nexora-hero">
+          <div class="nexora-hero-copy">
+            <p class="nexora-kicker">AI Systems Studio</p>
+            <h1>NEXORA AI</h1>
+            <h2>Intelligent Systems for Modern Businesses</h2>
+            <p>İşletmeler için yapay zeka destekli CRM, otomasyon ve yönetim sistemleri geliştiriyoruz.</p>
+            <div class="nexora-actions">
+              <a class="nexora-primary" href="#projects">Projeleri Gör</a>
+              <a class="nexora-secondary" href="#founder">İletişime Geç</a>
+              <a class="nexora-secondary" href="/nexora/community" data-link>Gençler İçin Yol Haritası</a>
+            </div>
+          </div>
+          <aside class="nexora-orbit-panel">
+            <div class="nexora-system-card active"><span>CRM</span><strong>Lead & müşteri takibi</strong></div>
+            <div class="nexora-system-card"><span>Automation</span><strong>WhatsApp + PDF akışları</strong></div>
+            <div class="nexora-system-card"><span>Dashboards</span><strong>Sektöre özel yönetim panelleri</strong></div>
+          </aside>
+        </section>
+
+        <section class="nexora-section" id="services">
+          <div class="nexora-section-head">
+            <p class="nexora-kicker">Services</p>
+            <h2>İşletmeler için yapay zeka destekli sistemler</h2>
+          </div>
+          <div class="nexora-service-grid">
+            ${services.map((service, index) => `
+              <article class="nexora-card">
+                <span>0${index + 1}</span>
+                <strong>${escapeHtml(service)}</strong>
+                <p>Operasyonları sadeleştiren, satış takibini güçlendiren ve sunum kalitesini artıran özel yazılım akışı.</p>
+              </article>
+            `).join("")}
+          </div>
+        </section>
+
+        <section class="nexora-section" id="projects">
+          <div class="nexora-section-head">
+            <p class="nexora-kicker">Projects</p>
+            <h2>Geliştirilen sistem ve marka projeleri</h2>
+          </div>
+          <div class="nexora-project-grid">
+            ${projects.map(([name, description]) => `
+              <article class="nexora-project-card">
+                <strong>${escapeHtml(name)}</strong>
+                <p>${escapeHtml(description)}</p>
+              </article>
+            `).join("")}
+          </div>
+        </section>
+
+        <section class="nexora-founder" id="founder">
+          <div class="nexora-photo-placeholder">
+            <span>Fotoğraf alanı</span>
+            <strong>Fatih Çetinkurt</strong>
+          </div>
+          <div class="nexora-founder-copy">
+            <p class="nexora-kicker">Founder</p>
+            <h2>Fatih Çetinkurt</h2>
+            <div class="nexora-founder-facts">
+              <span>Doğum Yılı: 2006</span>
+              <span>Konum: Kahramanmaraş, Türkiye</span>
+              <span>Kurucu: Nexora AI</span>
+            </div>
+            <p>Fatih Çetinkurt, farklı sektörlerde markalar geliştiren ve işletmeler için yapay zeka destekli çözümler üreten genç bir girişimci ve yazılım geliştiricisidir.</p>
+            <p>Turizm, sağlık, CRM sistemleri, otomasyon çözümleri ve dijital dönüşüm alanlarında çalışmalar yürütmektedir.</p>
+            <p>Nexora AI çatısı altında TourFlow AI, Estemar Clinic AI, FM Travel, Çalışkan Turizm Demo gibi yapay zeka destekli sistemlerin yanında Artiza ve Freza by Artiza gibi marka projeleri üzerinde de çalışmaktadır.</p>
+          </div>
+        </section>
+
+        <section class="nexora-vision">
+          <p class="nexora-kicker">Vision</p>
+          <h2>Teknoloji ve girişimcilik ekosistemi</h2>
+          <p>Tek bir sektöre bağlı kalmadan; turizm, sağlık, perakende ve hizmet sektörleri için yenilikçi markalar ve yapay zeka destekli sistemler geliştirerek büyüyen bir teknoloji ve girişimcilik ekosistemi oluşturmak.</p>
+        </section>
+      </main>
+    </div>
+  `;
+}
+
+function renderNexoraCommunity() {
+  const supportItems = [
+    "İş fikrini netleştirebiliriz",
+    "Hedef kitleni belirleyebiliriz",
+    "Basit bir yol haritası çıkarabiliriz",
+    "Marka ismi ve sunum metni hazırlayabiliriz",
+    "Web sitesi veya demo fikri oluşturabiliriz"
+  ];
+
+  app.innerHTML = `
+    <div class="nexora-shell nexora-community-shell">
+      <header class="nexora-header">
+        <a class="nexora-brand" href="/nexora" data-link>
+          <span>N</span>
+          <strong>NEXORA AI</strong>
+        </a>
+        <nav>
+          <a href="/nexora" data-link>Ana Sayfa</a>
+          <a href="#story">Hikaye</a>
+          <a href="#idea-form">Fikrimi Paylaş</a>
+        </nav>
+      </header>
+
+      <main>
+        <section class="nexora-community-hero">
+          <div class="nexora-hero-copy">
+            <p class="nexora-kicker">Community & Mentorship</p>
+            <h1>Gençler İçin Yol Haritası</h1>
+            <p>Bir fikrin varsa, nereden başlayacağını bilmiyorsan veya kendi işini kurmak istiyorsan; burada fikir alabilir, projeni anlatabilir ve yol haritası oluşturabilirsin.</p>
+            <div class="nexora-actions">
+              <a class="nexora-primary" href="#idea-form">Fikrimi Paylaş</a>
+              <a class="nexora-secondary" href="#story">Kuruluş Hikayesini Oku</a>
+            </div>
+          </div>
+          <aside class="nexora-community-card">
+            <span>Başlangıç noktası</span>
+            <strong>Fikrini daha net, daha ciddi ve uygulanabilir hale getirmek.</strong>
+            <p>Bu alan demo formdur; gençlerin fikirlerini düzenli biçimde anlatabilmesi için tasarlanmıştır.</p>
+          </aside>
+        </section>
+
+        <section class="nexora-community-section" id="story">
+          <p class="nexora-kicker">Story</p>
+          <h2>Bu Noktaya Nasıl Geldik?</h2>
+          <div class="nexora-story-grid">
+            <article>
+              <p>Fatih Çetinkurt, 2006 doğumlu genç bir girişimci olarak Kahramanmaraş’ta farklı iş fikirleri ve markalar üzerine çalışmaya başladı. İlk dönemlerde turizm, yerel markalar ve dijital projeler üzerinde denemeler yaptı. Artiza ile geleneksel el işçiliğini modern bir marka haline getirme fikrini geliştirdi. Freza by Artiza ile farklı bir gıda ve sunum konsepti üzerine düşündü.</p>
+              <p>Zamanla sadece marka kurmanın değil, işletmelerin ihtiyaç duyduğu sistemleri geliştirmenin de büyük bir fırsat olduğunu gördü. Bu düşünceyle TourFlow AI, FM Travel operasyon sistemi, Çalışkan Turizm Demo ve Estemar Clinic AI gibi projeler geliştirildi.</p>
+              <p>Nexora AI ise bu çalışmaların tek çatı altında toplandığı yapı olarak ortaya çıktı. Amaç; turizmden kliniğe, perakendeden hizmet sektörüne kadar farklı alanlarda işletmelere yapay zeka destekli sistemler sunmak.</p>
+            </article>
+            <aside>
+              <span>Nexora AI</span>
+              <strong>Marka, yazılım ve operasyon sistemlerini aynı çatı altında düşünmek.</strong>
+            </aside>
+          </div>
+        </section>
+
+        <section class="nexora-community-section">
+          <p class="nexora-kicker">Support</p>
+          <h2>Yol Arkadaşları ve İlk Destekler</h2>
+          <p>Bu süreçte çevresindeki insanların fikirleri, desteği ve güveni de önemli rol oynadı. Mahmut Can Usta, hem yakın çevreden gelen desteklerden biri hem de girişimcilik yolculuğunda fikir alışverişi yapılan kişilerden biri olarak bu hikayenin bir parçası oldu.</p>
+        </section>
+
+        <section class="nexora-community-section">
+          <p class="nexora-kicker">Message</p>
+          <h2>Bir Fikrin Varsa Bekleme</h2>
+          <p>Nexora AI’ın amacı sadece işletmelere sistem geliştirmek değil; aynı zamanda gençlerin fikirlerini daha ciddi, daha planlı ve daha uygulanabilir hale getirmelerine yardımcı olmaktır.</p>
+          <div class="nexora-support-grid">
+            ${supportItems.map((item) => `<article><span>•</span><strong>${escapeHtml(item)}</strong></article>`).join("")}
+          </div>
+        </section>
+
+        <section class="nexora-community-form-section" id="idea-form">
+          <div>
+            <p class="nexora-kicker">Share Your Idea</p>
+            <h2>Soru Sor / Fikir Paylaş</h2>
+            <p>Fikrini kısa ve net anlat. Bu form şimdilik sadece demo görünümüdür; herhangi bir backend kaydı oluşturmaz.</p>
+          </div>
+          <form class="nexora-idea-form">
+            <label>Ad Soyad <input name="name" placeholder="Adını yaz" /></label>
+            <label>Yaş <input name="age" placeholder="Örn. 18" /></label>
+            <label>Şehir <input name="city" placeholder="Örn. Kahramanmaraş" /></label>
+            <label>Fikrin / Sorun <textarea name="idea" placeholder="Aklındaki fikri veya çözmek istediğin problemi anlat"></textarea></label>
+            <label>Ne konuda destek istiyorsun? <textarea name="support" placeholder="Marka, yazılım, web sitesi, sunum, yol haritası..."></textarea></label>
+            <label>İletişim bilgisi <input name="contact" placeholder="Telefon, Instagram veya e-posta" /></label>
+            <button class="nexora-primary" type="button">Demo Formu İncele</button>
+            <p>Bu form demo amaçlıdır. Gerçek iletişim için WhatsApp veya Instagram üzerinden ulaşabilirsiniz.</p>
+          </form>
+        </section>
+      </main>
+    </div>
+  `;
+}
+
 function adminShell(view, title, body) {
   const nav = [
     ["dashboard", "/admin", "Dashboard"],
@@ -2454,6 +2660,8 @@ async function render() {
   try {
     const route = location.pathname;
     if (route === "/about") return renderPublicAbout();
+    if (route === "/nexora/community" || route === "/demo/nexora/community") return renderNexoraCommunity();
+    if (route === "/nexora" || route === "/demo/nexora") return renderNexoraHome();
     if (route === "/demo/caliskan" || route.startsWith("/demo/caliskan/admin")) return renderCaliskanDemo();
     if (route === "/demo/estemar" || route.startsWith("/demo/estemar/admin")) return renderEstemarDemo();
     if (route.startsWith("/admin") && !(await requireAdminSession())) {
