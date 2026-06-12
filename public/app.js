@@ -782,21 +782,21 @@ function renderAdminLogin(message = "") {
           <p>Lead, tur, kapora ve operasyon yönetimini güvenle kontrol edin.</p>
         </div>
         <div class="auth-proof-grid">
-          <article>
+          <article class="auth-feature-card">
             <i class="auth-feature-icon">&#128203;</i>
-            <div><strong>Lead Y&#246;netimi</strong><span>Yeni m&#252;&#351;teri taleplerini y&#246;netin</span></div>
+            <div class="auth-feature-text"><strong>Lead Y&#246;netimi</strong><span>Yeni m&#252;&#351;teri taleplerini y&#246;netin</span></div>
           </article>
-          <article>
+          <article class="auth-feature-card">
             <i class="auth-feature-icon">&#128652;</i>
-            <div><strong>Tur Y&#246;netimi</strong><span>Program ve kat&#305;l&#305;mc&#305;lar&#305; takip edin</span></div>
+            <div class="auth-feature-text"><strong>Tur Y&#246;netimi</strong><span>Program ve kat&#305;l&#305;mc&#305;lar&#305; takip edin</span></div>
           </article>
-          <article>
+          <article class="auth-feature-card">
             <i class="auth-feature-icon">&#128176;</i>
-            <div><strong>Kapora Takibi</strong><span>&#214;deme durumlar&#305;n&#305; kontrol edin</span></div>
+            <div class="auth-feature-text"><strong>Kapora Takibi</strong><span>&#214;deme durumlar&#305;n&#305; kontrol edin</span></div>
           </article>
-          <article>
+          <article class="auth-feature-card">
             <i class="auth-feature-icon">&#128241;</i>
-            <div><strong>WhatsApp Merkezi</strong><span>Bilgilendirme mesajlar&#305; olu&#351;turun</span></div>
+            <div class="auth-feature-text"><strong>WhatsApp Merkezi</strong><span>Bilgilendirme mesajlar&#305; olu&#351;turun</span></div>
           </article>
         </div>
       </section>

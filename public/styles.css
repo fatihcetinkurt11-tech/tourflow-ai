@@ -1826,3 +1826,95 @@ select:focus {
     min-width: 720px;
   }
 }
+
+/* Final admin login/about overrides: keep this at the end to win older rules. */
+.auth-shell .auth-proof-grid {
+  align-items: stretch !important;
+  display: grid !important;
+  gap: 16px !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  max-width: 640px !important;
+  width: 100% !important;
+}
+
+.auth-shell .auth-proof-grid > article,
+.auth-shell .auth-feature-card {
+  align-items: center !important;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.08)) !important;
+  border: 1px solid rgba(255, 255, 255, 0.24) !important;
+  border-radius: 10px !important;
+  display: grid !important;
+  gap: 14px !important;
+  grid-template-columns: 56px minmax(0, 1fr) !important;
+  height: 148px !important;
+  min-height: 148px !important;
+  min-width: 0 !important;
+  overflow: hidden !important;
+  padding: 18px 16px !important;
+}
+
+.auth-shell .auth-feature-icon {
+  align-items: center !important;
+  align-self: center !important;
+  background: rgba(255, 255, 255, 0.14) !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  border-radius: 14px !important;
+  color: #f6d88a !important;
+  display: inline-flex !important;
+  flex: 0 0 54px !important;
+  font-size: 24px !important;
+  font-style: normal !important;
+  height: 54px !important;
+  justify-content: center !important;
+  line-height: 1 !important;
+  width: 54px !important;
+}
+
+.auth-shell .auth-feature-text,
+.auth-shell .auth-proof-grid > article > div {
+  display: grid !important;
+  gap: 8px !important;
+  min-width: 0 !important;
+  overflow: hidden !important;
+}
+
+.auth-shell .auth-feature-text strong,
+.auth-shell .auth-proof-grid > article strong {
+  color: #f6d88a !important;
+  display: block !important;
+  font-size: 17px !important;
+  font-weight: 900 !important;
+  line-height: 1.25 !important;
+  min-width: 0 !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+.auth-shell .auth-feature-text span,
+.auth-shell .auth-proof-grid > article span {
+  color: #d8ede5 !important;
+  display: -webkit-box !important;
+  font-size: 13px !important;
+  line-height: 1.4 !important;
+  max-height: 38px !important;
+  overflow: hidden !important;
+  -webkit-box-orient: vertical !important;
+  -webkit-line-clamp: 2 !important;
+}
+
+.admin-shell .nav a[href="/admin/about"] {
+  display: block !important;
+}
+
+@media (max-width: 640px) {
+  .auth-shell .auth-proof-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .auth-shell .auth-proof-grid > article,
+  .auth-shell .auth-feature-card {
+    height: 118px !important;
+    min-height: 118px !important;
+  }
+}
