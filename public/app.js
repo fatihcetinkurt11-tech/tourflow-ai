@@ -12,6 +12,36 @@ let adminSession = null;
 
 const leadConvertEndpoint = (leadId) => `/api/leads/${leadId}/convert`;
 const fmTravelLogoPath = "/assets/fm-travel-logo.png";
+const caliskanDemoBase = "/demo/caliskan/admin";
+
+const caliskanDemo = {
+  stats: [
+    ["Toplam Lead", "36", "Sunum demo lead havuzu"],
+    ["Aktif Tur", "18", "Planlanan operasyonlar"],
+    ["Bekleyen Kapora", "9", "Takip edilecek ödemeler"],
+    ["Tahmini Kâr", "248.000 TL", "Demo kârlılık özeti"]
+  ],
+  tours: [
+    { name: "Umre Programı", duration: "12 gün", people: "35 kişi", status: "Kapora toplanıyor" },
+    { name: "Hac Programı", duration: "45 gün", people: "40 kişi", status: "Kontenjan takipte" },
+    { name: "Karadeniz Yaylalar Turu", duration: "5 gün", people: "28 kişi", status: "Satış aktif" },
+    { name: "GAP Turu", duration: "4 gün", people: "32 kişi", status: "Program hazır" },
+    { name: "Batum Turu", duration: "3 gün", people: "24 kişi", status: "Evrak kontrol" },
+    { name: "Kapadokya Turu", duration: "2 gün", people: "20 kişi", status: "Rezervasyon" }
+  ],
+  leads: [
+    { name: "Mehmet Yılmaz", tour: "Umre Programı", status: "Teklif Verildi" },
+    { name: "Fatma Kaya", tour: "Karadeniz Turu", status: "Kapora Bekleniyor" },
+    { name: "Hasan Demir", tour: "Hac Programı", status: "Satışa Dönüştü" },
+    { name: "Ahmet Çelik", tour: "GAP Turu", status: "Arandı" }
+  ],
+  participants: [
+    ["Ayşe Demir", "Umre Programı", "2 kişi", "Kapora alındı"],
+    ["Mustafa Şahin", "Hac Programı", "1 kişi", "Evrak bekleniyor"],
+    ["Zeynep Arslan", "GAP Turu", "4 kişi", "Ödeme planlandı"],
+    ["Emre Koç", "Batum Turu", "2 kişi", "Koltuk ayrıldı"]
+  ]
+};
 
 function fmTravelLogoHtml(className = "") {
   return `
@@ -821,6 +851,240 @@ function renderAdminLogin(message = "") {
   `;
 }
 
+function caliskanLogoHtml() {
+  return `
+    <span class="caliskan-logo">
+      <strong>ÇALIŞKAN TURİZM</strong>
+      <small>Turizm ve Seyahat Acentası</small>
+    </span>
+  `;
+}
+
+function caliskanDemoShell(view, title, body) {
+  const nav = [
+    ["dashboard", caliskanDemoBase, "Dashboard"],
+    ["leads", `${caliskanDemoBase}/leads`, "Lead Yönetimi"],
+    ["tours", `${caliskanDemoBase}/tours`, "Tur Yönetimi"],
+    ["participants", `${caliskanDemoBase}/participants`, "Katılımcılar"],
+    ["deposits", `${caliskanDemoBase}/deposits`, "Kapora"],
+    ["whatsapp", `${caliskanDemoBase}/whatsapp`, "WhatsApp Merkezi"],
+    ["pdf", `${caliskanDemoBase}/pdf`, "PDF Merkezi"],
+    ["about", `${caliskanDemoBase}/about`, "Hakkımızda"]
+  ];
+
+  app.innerHTML = `
+    <div class="admin-shell caliskan-demo-shell">
+      <aside class="sidebar caliskan-sidebar">
+        <a class="brand" href="/demo/caliskan" data-link>
+          ${caliskanLogoHtml()}
+        </a>
+        <span class="demo-ribbon">Demo Panel - TourFlow AI sunum amaçlıdır.</span>
+        <nav class="nav">
+          ${nav.map(([key, href, label]) => `<a class="nav-link ${view === key ? "active" : ""}" href="${href}" data-link>${label}</a>`).join("")}
+        </nav>
+      </aside>
+
+      <main class="admin-content caliskan-content">
+        <header class="admin-topbar caliskan-topbar">
+          <div>
+            <p class="eyebrow">Powered by TourFlow AI</p>
+            <h1>${escapeHtml(title)}</h1>
+            <p class="muted">Çalışkan Turizm için hazırlanmış izole satış demo paneli.</p>
+          </div>
+          <div class="quick-stats">
+            <span class="badge sun">Demo mod</span>
+            <span class="badge sky">Veritabani yok</span>
+            <a class="link-btn" href="/admin" data-link>FM Travel paneli</a>
+          </div>
+        </header>
+        <section class="view">${body}</section>
+      </main>
+    </div>
+  `;
+}
+
+function renderCaliskanDemoDashboard() {
+  caliskanDemoShell("dashboard", "Çalışkan Turizm Operasyon Paneli", `
+    <div class="dashboard-cards caliskan-stats">
+      ${caliskanDemo.stats.map(([label, value, note]) => `
+        <article class="metric stat-card"><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong><p class="muted">${escapeHtml(note)}</p></article>
+      `).join("")}
+    </div>
+    <div class="admin-grid">
+      <section class="panel">
+        <div class="panel-header"><h2>Aktif turlar</h2><a class="link-btn" href="${caliskanDemoBase}/tours" data-link>Tümünü aç</a></div>
+        <div class="tour-list">
+          ${caliskanDemo.tours.map((tour) => `
+            <article class="tour-card">
+              <div class="tour-head">
+                <div>
+                  <strong>${escapeHtml(tour.name)}</strong>
+                  <p class="muted">${escapeHtml(tour.duration)} / ${escapeHtml(tour.people)}</p>
+                </div>
+                <span class="badge sun">${escapeHtml(tour.status)}</span>
+              </div>
+            </article>
+          `).join("")}
+        </div>
+      </section>
+      <section class="panel">
+        <div class="panel-header"><h2>Son leadler</h2><a class="link-btn" href="${caliskanDemoBase}/leads" data-link>Leadleri aç</a></div>
+        <div class="item-list">
+          ${caliskanDemo.leads.map((lead) => `
+            <article class="item item-head">
+              <div><strong>${escapeHtml(lead.name)}</strong><p class="muted">${escapeHtml(lead.tour)}</p></div>
+              <span class="badge ${lead.status.includes("Satış") ? "green" : "sun"}">${escapeHtml(lead.status)}</span>
+            </article>
+          `).join("")}
+        </div>
+      </section>
+    </div>
+  `);
+}
+
+function renderCaliskanDemoLeads() {
+  caliskanDemoShell("leads", "Lead Yönetimi", `
+    <section class="panel">
+      <div class="panel-header"><h2>Demo leadler</h2><span class="badge sun">Sabit veri</span></div>
+      <div class="table-wrap">
+        <table class="table">
+          <thead><tr><th>Ad Soyad</th><th>Tur</th><th>Durum</th><th>Aksiyon</th></tr></thead>
+          <tbody>${caliskanDemo.leads.map((lead) => `
+            <tr>
+              <td><strong>${escapeHtml(lead.name)}</strong></td>
+              <td>${escapeHtml(lead.tour)}</td>
+              <td><span class="badge ${lead.status.includes("Satış") ? "green" : "sun"}">${escapeHtml(lead.status)}</span></td>
+              <td><button class="btn secondary" type="button">Demo teklif</button></td>
+            </tr>
+          `).join("")}</tbody>
+        </table>
+      </div>
+    </section>
+  `);
+}
+
+function renderCaliskanDemoTours() {
+  caliskanDemoShell("tours", "Tur Yönetimi", `
+    <section class="panel">
+      <div class="panel-header"><h2>Demo aktif turlar</h2><span class="badge sun">${caliskanDemo.tours.length} program</span></div>
+      <div class="tour-list">
+        ${caliskanDemo.tours.map((tour) => `
+          <article class="tour-card">
+            <div class="tour-head">
+              <div>
+                <strong>${escapeHtml(tour.name)}</strong>
+                <p class="muted">${escapeHtml(tour.duration)} / ${escapeHtml(tour.people)}</p>
+              </div>
+              <span class="badge sky">${escapeHtml(tour.status)}</span>
+            </div>
+            <div class="three-grid">
+              <div class="metric"><span>Süre</span><strong>${escapeHtml(tour.duration)}</strong></div>
+              <div class="metric"><span>Kapasite</span><strong>${escapeHtml(tour.people)}</strong></div>
+              <div class="metric"><span>Operasyon</span><strong>Hazir</strong></div>
+            </div>
+          </article>
+        `).join("")}
+      </div>
+    </section>
+  `);
+}
+
+function renderCaliskanDemoParticipants() {
+  caliskanDemoShell("participants", "Katılımcılar", `
+    <section class="panel">
+      <div class="panel-header"><h2>Demo katılımcı listesi</h2><span class="badge sun">Örnek kayıtlar</span></div>
+      <div class="table-wrap">
+        <table class="table">
+          <thead><tr><th>Katılımcı</th><th>Tur</th><th>Kişi</th><th>Durum</th></tr></thead>
+          <tbody>${caliskanDemo.participants.map(([name, tour, people, status]) => `
+            <tr><td><strong>${escapeHtml(name)}</strong></td><td>${escapeHtml(tour)}</td><td>${escapeHtml(people)}</td><td><span class="badge sun">${escapeHtml(status)}</span></td></tr>
+          `).join("")}</tbody>
+        </table>
+      </div>
+    </section>
+  `);
+}
+
+function renderCaliskanDemoDeposits() {
+  caliskanDemoShell("deposits", "Kapora", `
+    <section class="panel">
+      <div class="panel-header"><h2>Kapora takip özeti</h2><span class="badge sun">9 bekleyen</span></div>
+      <div class="three-grid">
+        <div class="metric"><span>Toplanan kapora</span><strong>184.000 TL</strong></div>
+        <div class="metric"><span>Bekleyen kapora</span><strong>9</strong></div>
+        <div class="metric"><span>Bugün aranacak</span><strong>4 kişi</strong></div>
+      </div>
+    </section>
+  `);
+}
+
+function renderCaliskanDemoWhatsapp() {
+  const message = "Merhaba, Çalışkan Turizm olarak tur programınız için ön kaydınızı aldık. Kapora ve kesin kayıt bilgileri için size yardımcı olabiliriz.";
+  caliskanDemoShell("whatsapp", "WhatsApp Merkezi", `
+    <div class="two-grid">
+      <section class="panel">
+        <div class="panel-header"><h2>Hazir demo mesajlari</h2></div>
+        <div class="whatsapp-template-actions">
+          <button class="btn secondary" type="button">Teklif mesaji</button>
+          <button class="btn secondary" type="button">Kapora hatirlatma</button>
+          <button class="btn secondary" type="button">Tur bilgisi</button>
+          <button class="btn secondary" type="button">Evrak hatirlatma</button>
+        </div>
+      </section>
+      <section class="panel">
+        <div class="panel-header"><h2>Mesaj önizleme</h2></div>
+        <div class="item-list"><div class="copy-box">${escapeHtml(message)}</div></div>
+      </section>
+    </div>
+  `);
+}
+
+function renderCaliskanDemoPdf() {
+  caliskanDemoShell("pdf", "PDF Merkezi", `
+    <section class="panel">
+      <div class="panel-header"><h2>Demo PDF belgeleri</h2><span class="badge sun">Sunum önizleme</span></div>
+      <div class="document-actions">
+        <button class="btn secondary" type="button">Tur Kayıt Belgesi</button>
+        <button class="btn secondary" type="button">Kapora Belgesi</button>
+        <button class="btn secondary" type="button">Katılımcı Listesi</button>
+        <button class="btn secondary" type="button">Tur Programı</button>
+      </div>
+      <p class="empty">Bu demo alanı gerçek PDF üretmez ve FM Travel belgelerine dokunmaz.</p>
+    </section>
+  `);
+}
+
+function renderCaliskanDemoAbout() {
+  caliskanDemoShell("about", "Hakkımızda", `
+    <section class="panel caliskan-about-panel">
+      <div class="panel-header"><h2>Çalışkan Turizm</h2><span class="badge sun">1949</span></div>
+      <div class="item-list">
+        <article class="item">
+          <h3>Marka</h3>
+          <p>Çalışkan Havacılık Turizm ve Seyahat Acentası, 1949 yılında temelleri atılan köklü bir turizm markasıdır. Hac, Umre, kültür turları ve yurt dışı organizasyonlarında hizmet vermektedir.</p>
+        </article>
+        <article class="item">
+          <h3>Yönetim</h3>
+          <p><strong>Ahmet Küçükdağlı</strong> - Şirket Sahibi</p>
+        </article>
+      </div>
+    </section>
+  `);
+}
+
+function renderCaliskanDemo() {
+  const route = location.pathname.replace(/\/$/, "");
+  if (route === "/demo/caliskan" || route === caliskanDemoBase) return renderCaliskanDemoDashboard();
+  if (route === `${caliskanDemoBase}/leads`) return renderCaliskanDemoLeads();
+  if (route === `${caliskanDemoBase}/tours`) return renderCaliskanDemoTours();
+  if (route === `${caliskanDemoBase}/participants`) return renderCaliskanDemoParticipants();
+  if (route === `${caliskanDemoBase}/deposits`) return renderCaliskanDemoDeposits();
+  if (route === `${caliskanDemoBase}/whatsapp`) return renderCaliskanDemoWhatsapp();
+  if (route === `${caliskanDemoBase}/pdf`) return renderCaliskanDemoPdf();
+  if (route === `${caliskanDemoBase}/about`) return renderCaliskanDemoAbout();
+  return renderCaliskanDemoDashboard();
+}
+
 function adminShell(view, title, body) {
   const nav = [
     ["dashboard", "/admin", "Dashboard"],
@@ -1542,6 +1806,7 @@ async function render() {
   try {
     const route = location.pathname;
     if (route === "/about") return renderPublicAbout();
+    if (route === "/demo/caliskan" || route.startsWith("/demo/caliskan/admin")) return renderCaliskanDemo();
     if (route.startsWith("/admin") && !(await requireAdminSession())) {
       renderAdminLogin();
       return;
