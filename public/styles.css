@@ -3443,15 +3443,27 @@ select:focus {
   background:
     linear-gradient(145deg, rgba(37, 99, 235, 0.14), rgba(124, 58, 237, 0.16)),
     rgba(255, 255, 255, 0.05);
-  border: 1px dashed rgba(191, 219, 254, 0.28);
+  border: 1px solid rgba(191, 219, 254, 0.24);
   border-radius: 20px;
+  box-shadow: 0 0 34px rgba(79, 70, 229, 0.18), 0 14px 44px rgba(0, 0, 0, 0.24);
   color: #93c5fd;
   display: flex;
   font-size: 12px;
   font-weight: 950;
   justify-content: center;
   min-height: 160px;
+  overflow: hidden;
+  padding: 6px;
   text-transform: uppercase;
+}
+
+.nexora-collab-photo img {
+  border-radius: 15px;
+  display: block;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+  width: 100%;
 }
 
 .nexora-collab-card h3 {

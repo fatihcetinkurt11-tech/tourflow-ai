@@ -1850,7 +1850,9 @@ function renderNexoraHome() {
             <p>Destek verenler ve yol arkadaşları</p>
           </div>
           <article class="nexora-collab-card">
-            <div class="nexora-collab-photo"><span>Fotoğraf alanı</span></div>
+            <div class="nexora-collab-photo">
+              <img src="/assets/mahmut-can-usta.jpg" alt="Mahmut Can Usta" />
+            </div>
             <div>
               <p class="nexora-kicker">Destekçi ve Fikir Ortağı</p>
               <h3>Mahmut Can Usta</h3>
