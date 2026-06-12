@@ -13,6 +13,7 @@ let adminSession = null;
 const leadConvertEndpoint = (leadId) => `/api/leads/${leadId}/convert`;
 const fmTravelLogoPath = "/assets/fm-travel-logo.png";
 const caliskanDemoBase = "/demo/caliskan/admin";
+const estemarDemoBase = "/demo/estemar/admin";
 
 const caliskanDemo = {
   stats: [
@@ -41,6 +42,69 @@ const caliskanDemo = {
     ["Zeynep Arslan", "GAP Turu", "4 kişi", "Ödeme planlandı"],
     ["Emre Koç", "Batum Turu", "2 kişi", "Koltuk ayrıldı"]
   ]
+};
+
+const estemarDemo = {
+  stats: [
+    ["Yeni Hasta Talebi", "24", "Demo hasta talep havuzu"],
+    ["Bugünkü Randevu", "11", "Klinik operasyon akışı"],
+    ["Bekleyen Ödeme", "8", "Takip edilecek tahsilatlar"],
+    ["Aylık Tahmini Ciro", "1.450.000 TL", "Demo ciro özeti"]
+  ],
+  procedures: [
+    "Burun Estetiği",
+    "Meme Protezi",
+    "Meme Küçültme",
+    "Liposuction",
+    "Abdominoplasti",
+    "Göz Kapağı Estetiği",
+    "Yüz Estetiği",
+    "Kepçe Kulak",
+    "Jinekomasti",
+    "Saç Dökülmesi",
+    "Cilt Lekeleri",
+    "Akne",
+    "Göz Altı Morlukları"
+  ],
+  patients: [
+    { name: "Ayşe Yılmaz", procedure: "Burun Estetiği", status: "Teklif Verildi" },
+    { name: "Fatma Demir", procedure: "Göz Kapağı Estetiği", status: "Randevu Oluşturuldu" },
+    { name: "Mehmet Kaya", procedure: "Liposuction", status: "Kapora Alındı" },
+    { name: "Zeynep Arslan", procedure: "Meme Protezi", status: "Kontrol Bekliyor" },
+    { name: "Elif Şahin", procedure: "Cilt Lekeleri", status: "Arandı" }
+  ],
+  appointments: [
+    ["09:30", "Ayşe Yılmaz", "Burun Estetiği ön görüşme", "Teklif görüşmesi"],
+    ["11:00", "Fatma Demir", "Göz kapağı muayene", "Randevu oluşturuldu"],
+    ["14:15", "Mehmet Kaya", "Liposuction planlama", "Kapora alındı"],
+    ["16:00", "Zeynep Arslan", "Meme protezi kontrol", "Kontrol bekliyor"]
+  ],
+  whatsappMessages: [
+    "Hoş geldiniz mesajı",
+    "Randevu hatırlatma",
+    "Fiyat teklifi",
+    "İşlem sonrası bakım mesajı",
+    "Kontrol randevusu mesajı"
+  ],
+  documents: [
+    "Fiyat Teklifi",
+    "Tedavi Planı",
+    "Aydınlatılmış Onam Formu",
+    "Kontrol Planı"
+  ],
+  doctor: {
+    name: "Op. Dr. Hilmi Şen",
+    specialty: "Plastik Rekonstrüktif ve Estetik Cerrahi",
+    education: [
+      "Çukurova Üniversitesi Tıp Fakültesi",
+      "Ankara Eğitim ve Araştırma Hastanesi İhtisas"
+    ],
+    experience: [
+      "Estemar Plastik ve Rekonstrüktif Estetik Cerrahi",
+      "Megapark Hastanesi",
+      "Adıyaman Eğitim ve Araştırma Hastanesi"
+    ]
+  }
 };
 
 function fmTravelLogoHtml(className = "") {
@@ -1085,6 +1149,261 @@ function renderCaliskanDemo() {
   return renderCaliskanDemoDashboard();
 }
 
+function estemarLogoHtml() {
+  return `
+    <span class="estemar-logo">
+      <strong>Estemar</strong>
+      <small>Plastik ve Rekonstrüktif Estetik Cerrahi</small>
+    </span>
+  `;
+}
+
+function estemarStatusBadge(status) {
+  if (status.includes("Kapora") || status.includes("Randevu")) return "sky";
+  if (status.includes("Kontrol")) return "silver";
+  return "green";
+}
+
+function estemarDemoShell(view, title, body) {
+  const nav = [
+    ["dashboard", estemarDemoBase, "Dashboard"],
+    ["patients", `${estemarDemoBase}/patients`, "Hasta Talepleri"],
+    ["appointments", `${estemarDemoBase}/appointments`, "Randevular"],
+    ["procedures", `${estemarDemoBase}/procedures`, "İşlem Yönetimi"],
+    ["payments", `${estemarDemoBase}/payments`, "Ödeme Takibi"],
+    ["whatsapp", `${estemarDemoBase}/whatsapp`, "WhatsApp Merkezi"],
+    ["pdf", `${estemarDemoBase}/pdf`, "PDF Evrakları"],
+    ["gallery", `${estemarDemoBase}/gallery`, "Öncesi / Sonrası Galeri"],
+    ["about", `${estemarDemoBase}/about`, "Hakkımızda"]
+  ];
+
+  app.innerHTML = `
+    <div class="admin-shell estemar-demo-shell">
+      <aside class="sidebar estemar-sidebar">
+        <a class="brand" href="/demo/estemar" data-link>
+          ${estemarLogoHtml()}
+        </a>
+        <span class="demo-ribbon estemar-ribbon">Demo Panel - Flow AI sunum amaçlıdır.</span>
+        <nav class="nav">
+          ${nav.map(([key, href, label]) => `<a class="nav-link ${view === key ? "active" : ""}" href="${href}" data-link>${label}</a>`).join("")}
+        </nav>
+      </aside>
+
+      <main class="admin-content estemar-content">
+        <header class="admin-topbar estemar-topbar">
+          <div>
+            <p class="eyebrow">Powered by Flow AI</p>
+            <h1>${escapeHtml(title)}</h1>
+            <p class="muted">Estemar Plastik ve Rekonstrüktif Estetik Cerrahi · Kahramanmaraş</p>
+          </div>
+          <div class="quick-stats">
+            <span class="badge sky">Klinik demo</span>
+            <span class="badge silver">Veritabanı yok</span>
+            <a class="link-btn" href="/admin" data-link>FM Travel paneli</a>
+          </div>
+        </header>
+        <section class="view">${body}</section>
+      </main>
+    </div>
+  `;
+}
+
+function renderEstemarDemoDashboard() {
+  estemarDemoShell("dashboard", "Estemar Klinik Operasyon Paneli", `
+    <div class="dashboard-cards estemar-stats">
+      ${estemarDemo.stats.map(([label, value, note]) => `
+        <article class="metric stat-card"><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong><p class="muted">${escapeHtml(note)}</p></article>
+      `).join("")}
+    </div>
+    <div class="admin-grid">
+      <section class="panel">
+        <div class="panel-header"><h2>Hasta talepleri</h2><a class="link-btn" href="${estemarDemoBase}/patients" data-link>Talepleri aç</a></div>
+        <div class="item-list">
+          ${estemarDemo.patients.map((patient) => `
+            <article class="item item-head">
+              <div><strong>${escapeHtml(patient.name)}</strong><p class="muted">${escapeHtml(patient.procedure)}</p></div>
+              <span class="badge ${estemarStatusBadge(patient.status)}">${escapeHtml(patient.status)}</span>
+            </article>
+          `).join("")}
+        </div>
+      </section>
+      <section class="panel">
+        <div class="panel-header"><h2>Bugünkü randevular</h2><a class="link-btn" href="${estemarDemoBase}/appointments" data-link>Takvimi aç</a></div>
+        <div class="tour-list">
+          ${estemarDemo.appointments.map(([time, name, procedure, status]) => `
+            <article class="tour-card">
+              <div class="tour-head">
+                <div><strong>${escapeHtml(time)} · ${escapeHtml(name)}</strong><p class="muted">${escapeHtml(procedure)}</p></div>
+                <span class="badge sky">${escapeHtml(status)}</span>
+              </div>
+            </article>
+          `).join("")}
+        </div>
+      </section>
+    </div>
+  `);
+}
+
+function renderEstemarDemoPatients() {
+  estemarDemoShell("patients", "Hasta Talepleri", `
+    <section class="panel">
+      <div class="panel-header"><h2>Demo hasta talepleri</h2><span class="badge sky">Sabit veri</span></div>
+      <div class="table-wrap">
+        <table class="table">
+          <thead><tr><th>Hasta</th><th>İşlem</th><th>Durum</th><th>Aksiyon</th></tr></thead>
+          <tbody>${estemarDemo.patients.map((patient) => `
+            <tr>
+              <td><strong>${escapeHtml(patient.name)}</strong></td>
+              <td>${escapeHtml(patient.procedure)}</td>
+              <td><span class="badge ${estemarStatusBadge(patient.status)}">${escapeHtml(patient.status)}</span></td>
+              <td><button class="btn secondary" type="button">Demo takip</button></td>
+            </tr>
+          `).join("")}</tbody>
+        </table>
+      </div>
+    </section>
+  `);
+}
+
+function renderEstemarDemoAppointments() {
+  estemarDemoShell("appointments", "Randevular", `
+    <section class="panel">
+      <div class="panel-header"><h2>Bugünkü randevu akışı</h2><span class="badge sky">11 randevu</span></div>
+      <div class="table-wrap">
+        <table class="table">
+          <thead><tr><th>Saat</th><th>Hasta</th><th>İşlem</th><th>Durum</th></tr></thead>
+          <tbody>${estemarDemo.appointments.map(([time, name, procedure, status]) => `
+            <tr><td><strong>${escapeHtml(time)}</strong></td><td>${escapeHtml(name)}</td><td>${escapeHtml(procedure)}</td><td><span class="badge sky">${escapeHtml(status)}</span></td></tr>
+          `).join("")}</tbody>
+        </table>
+      </div>
+    </section>
+  `);
+}
+
+function renderEstemarDemoProcedures() {
+  estemarDemoShell("procedures", "İşlem Yönetimi", `
+    <section class="panel">
+      <div class="panel-header"><h2>Demo işlemler</h2><span class="badge silver">${estemarDemo.procedures.length} işlem</span></div>
+      <div class="procedure-grid">
+        ${estemarDemo.procedures.map((procedure, index) => `
+          <article class="metric procedure-card">
+            <span>İşlem ${index + 1}</span>
+            <strong>${escapeHtml(procedure)}</strong>
+            <p class="muted">Ön görüşme, teklif ve takip akışı hazır.</p>
+          </article>
+        `).join("")}
+      </div>
+    </section>
+  `);
+}
+
+function renderEstemarDemoPayments() {
+  estemarDemoShell("payments", "Ödeme Takibi", `
+    <section class="panel">
+      <div class="panel-header"><h2>Ödeme takip özeti</h2><span class="badge sky">8 bekleyen</span></div>
+      <div class="three-grid">
+        <div class="metric"><span>Alınan kapora</span><strong>420.000 TL</strong></div>
+        <div class="metric"><span>Bekleyen ödeme</span><strong>8</strong></div>
+        <div class="metric"><span>Aylık tahmini ciro</span><strong>1.450.000 TL</strong></div>
+      </div>
+    </section>
+  `);
+}
+
+function renderEstemarDemoWhatsapp() {
+  const message = "Merhaba, Estemar Klinik'e hoş geldiniz. Randevu ve işlem planınız için danışmanımız sizinle ilgilenecektir.";
+  estemarDemoShell("whatsapp", "WhatsApp Merkezi", `
+    <div class="two-grid">
+      <section class="panel">
+        <div class="panel-header"><h2>WhatsApp demo mesajları</h2></div>
+        <div class="whatsapp-template-actions estemar-message-actions">
+          ${estemarDemo.whatsappMessages.map((label) => `<button class="btn secondary" type="button">${escapeHtml(label)}</button>`).join("")}
+        </div>
+      </section>
+      <section class="panel">
+        <div class="panel-header"><h2>Mesaj önizleme</h2></div>
+        <div class="item-list"><div class="copy-box">${escapeHtml(message)}</div></div>
+      </section>
+    </div>
+  `);
+}
+
+function renderEstemarDemoPdf() {
+  estemarDemoShell("pdf", "PDF Evrakları", `
+    <section class="panel">
+      <div class="panel-header"><h2>Demo PDF evrakları</h2><span class="badge silver">Sunum önizleme</span></div>
+      <div class="document-actions">
+        ${estemarDemo.documents.map((documentName) => `<button class="btn secondary" type="button">${escapeHtml(documentName)}</button>`).join("")}
+      </div>
+      <p class="empty">Bu demo alanı gerçek PDF üretmez ve FM Travel belgelerine dokunmaz.</p>
+    </section>
+  `);
+}
+
+function renderEstemarDemoGallery() {
+  estemarDemoShell("gallery", "Öncesi / Sonrası Galeri", `
+    <section class="panel">
+      <div class="panel-header"><h2>Demo galeri</h2><span class="badge silver">Görsel placeholder</span></div>
+      <div class="gallery-grid">
+        ${["Burun Estetiği", "Göz Kapağı Estetiği", "Cilt Lekeleri"].map((label) => `
+          <article class="gallery-placeholder">
+            <div><span>Öncesi</span><span>Sonrası</span></div>
+            <strong>${escapeHtml(label)}</strong>
+            <p class="muted">Sunum amaçlı galeri alanı.</p>
+          </article>
+        `).join("")}
+      </div>
+    </section>
+  `);
+}
+
+function renderEstemarDemoAbout() {
+  const doctor = estemarDemo.doctor;
+  estemarDemoShell("about", "Hakkımızda", `
+    <div class="two-grid">
+      <section class="panel estemar-about-panel">
+        <div class="panel-header"><h2>Estemar</h2><span class="badge sky">Kahramanmaraş</span></div>
+        <div class="item-list">
+          <article class="item">
+            <h3>Klinik</h3>
+            <p>Estemar Plastik ve Rekonstrüktif Estetik Cerrahi, Kahramanmaraş'ta modern estetik cerrahi ve klinik takip süreçleriyle hizmet vermektedir.</p>
+          </article>
+          <article class="item">
+            <h3>Doktor</h3>
+            <p><strong>${escapeHtml(doctor.name)}</strong><br>${escapeHtml(doctor.specialty)}</p>
+          </article>
+          <article class="item">
+            <h3>Hakkımızda</h3>
+            <p>1978 doğumlu olan Op. Dr. Hilmi Şen, 2005 yılında Çukurova Üniversitesi Tıp Fakültesi'nden mezun olmuş, uzmanlık eğitimini Ankara Eğitim ve Araştırma Hastanesi'nde tamamlamıştır. Mecburi hizmetini Adıyaman Eğitim ve Araştırma Hastanesi'nde tamamlamış olup, bugün Kahramanmaraş'ta Estemar Plastik ve Rekonstrüktif Estetik Cerrahi Kliniği'nde hizmet vermektedir.</p>
+          </article>
+        </div>
+      </section>
+      <section class="panel">
+        <div class="panel-header"><h2>Eğitim ve deneyim</h2></div>
+        <div class="item-list">
+          <article class="item"><h3>Eğitim</h3><ul class="clean-list">${doctor.education.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul></article>
+          <article class="item"><h3>Deneyim</h3><ul class="clean-list">${doctor.experience.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul></article>
+        </div>
+      </section>
+    </div>
+  `);
+}
+
+function renderEstemarDemo() {
+  const route = location.pathname.replace(/\/$/, "");
+  if (route === "/demo/estemar" || route === estemarDemoBase) return renderEstemarDemoDashboard();
+  if (route === `${estemarDemoBase}/patients`) return renderEstemarDemoPatients();
+  if (route === `${estemarDemoBase}/appointments`) return renderEstemarDemoAppointments();
+  if (route === `${estemarDemoBase}/procedures`) return renderEstemarDemoProcedures();
+  if (route === `${estemarDemoBase}/payments`) return renderEstemarDemoPayments();
+  if (route === `${estemarDemoBase}/whatsapp`) return renderEstemarDemoWhatsapp();
+  if (route === `${estemarDemoBase}/pdf`) return renderEstemarDemoPdf();
+  if (route === `${estemarDemoBase}/gallery`) return renderEstemarDemoGallery();
+  if (route === `${estemarDemoBase}/about`) return renderEstemarDemoAbout();
+  return renderEstemarDemoDashboard();
+}
+
 function adminShell(view, title, body) {
   const nav = [
     ["dashboard", "/admin", "Dashboard"],
@@ -1807,6 +2126,7 @@ async function render() {
     const route = location.pathname;
     if (route === "/about") return renderPublicAbout();
     if (route === "/demo/caliskan" || route.startsWith("/demo/caliskan/admin")) return renderCaliskanDemo();
+    if (route === "/demo/estemar" || route.startsWith("/demo/estemar/admin")) return renderEstemarDemo();
     if (route.startsWith("/admin") && !(await requireAdminSession())) {
       renderAdminLogin();
       return;
