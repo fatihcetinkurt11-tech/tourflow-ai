@@ -3300,6 +3300,28 @@ select:focus {
   padding: 28px;
 }
 
+.nexora-founder-photo {
+  background:
+    linear-gradient(145deg, rgba(37, 99, 235, 0.18), rgba(124, 58, 237, 0.2)),
+    rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(191, 219, 254, 0.24);
+  border-radius: 30px;
+  box-shadow: 0 0 54px rgba(79, 70, 229, 0.24), 0 24px 80px rgba(0, 0, 0, 0.3);
+  min-height: 520px;
+  overflow: hidden;
+  padding: 10px;
+}
+
+.nexora-founder-photo img {
+  border-radius: 22px;
+  display: block;
+  height: 100%;
+  min-height: 500px;
+  object-fit: cover;
+  object-position: center top;
+  width: 100%;
+}
+
 .nexora-photo-placeholder {
   align-items: center;
   aspect-ratio: 4 / 5;
@@ -3331,6 +3353,13 @@ select:focus {
   gap: 14px;
 }
 
+.nexora-founder-copy h3 {
+  color: #c4b5fd;
+  font-size: 18px;
+  line-height: 1.35;
+  margin: -6px 0 0;
+}
+
 .nexora-founder-facts {
   display: flex;
   flex-wrap: wrap;
@@ -3345,6 +3374,93 @@ select:focus {
   font-size: 13px;
   font-weight: 900;
   padding: 9px 12px;
+}
+
+.nexora-trust-strip,
+.nexora-collaborators {
+  margin: 24px auto 0;
+  max-width: 1180px;
+}
+
+.nexora-trust-strip {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.nexora-trust-strip article,
+.nexora-collab-card {
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.78), rgba(15, 23, 42, 0.48));
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  border-radius: 24px;
+  box-shadow: 0 18px 54px rgba(0, 0, 0, 0.2);
+}
+
+.nexora-trust-strip article {
+  display: grid;
+  gap: 8px;
+  min-height: 122px;
+  padding: 20px;
+}
+
+.nexora-trust-strip strong {
+  color: #ffffff;
+  font-size: 20px;
+  line-height: 1.25;
+}
+
+.nexora-trust-strip span {
+  color: #94a3b8;
+  line-height: 1.45;
+}
+
+.nexora-collaborators {
+  display: grid;
+  gap: 18px;
+  padding: 34px 22px 0;
+}
+
+.nexora-collaborators .nexora-section-head p:not(.nexora-kicker) {
+  color: #cbd5e1;
+  line-height: 1.7;
+  margin: 0;
+}
+
+.nexora-collab-card {
+  align-items: center;
+  display: grid;
+  gap: 24px;
+  grid-template-columns: minmax(260px, 0.38fr) minmax(0, 1fr);
+  padding: 24px;
+}
+
+.nexora-collab-photo {
+  align-items: center;
+  aspect-ratio: 4 / 3;
+  background:
+    linear-gradient(145deg, rgba(37, 99, 235, 0.14), rgba(124, 58, 237, 0.16)),
+    rgba(255, 255, 255, 0.05);
+  border: 1px dashed rgba(191, 219, 254, 0.28);
+  border-radius: 24px;
+  color: #93c5fd;
+  display: flex;
+  font-size: 12px;
+  font-weight: 950;
+  justify-content: center;
+  min-height: 250px;
+  text-transform: uppercase;
+}
+
+.nexora-collab-card h3 {
+  color: #ffffff;
+  font-size: 30px;
+  margin: 8px 0 10px;
+}
+
+.nexora-collab-card p:not(.nexora-kicker) {
+  color: #cbd5e1;
+  line-height: 1.75;
+  margin: 0;
 }
 
 .nexora-vision {
@@ -3544,6 +3660,8 @@ select:focus {
   .nexora-service-grid,
   .nexora-project-grid,
   .nexora-founder,
+  .nexora-trust-strip,
+  .nexora-collab-card,
   .nexora-community-hero,
   .nexora-story-grid,
   .nexora-community-form-section {
@@ -3590,11 +3708,21 @@ select:focus {
 
   .nexora-founder,
   .nexora-vision,
+  .nexora-trust-strip,
+  .nexora-collaborators,
   .nexora-community-section,
   .nexora-community-form-section {
     margin-left: 16px;
     margin-right: 16px;
     padding: 20px;
+  }
+
+  .nexora-founder-photo {
+    min-height: 420px;
+  }
+
+  .nexora-founder-photo img {
+    min-height: 400px;
   }
 
   .nexora-support-grid {

@@ -1734,6 +1734,7 @@ function renderEstemarDemo() {
 }
 
 function renderNexoraHome() {
+  const founderImage = "/assets/fatih-cetinkurt-founder.png";
   const services = [
     "Yapay zeka destekli yönetim panelleri",
     "CRM ve müşteri takip sistemleri",
@@ -1817,22 +1818,46 @@ function renderNexoraHome() {
         </section>
 
         <section class="nexora-founder" id="founder">
-          <div class="nexora-photo-placeholder">
-            <span>Fotoğraf alanı</span>
-            <strong>Fatih Çetinkurt</strong>
+          <div class="nexora-founder-photo">
+            <img src="${founderImage}" alt="Fatih Çetinkurt" onerror="this.onerror=null; this.src='/assets/fatih-cetinkurt-founder.jpg';" />
           </div>
           <div class="nexora-founder-copy">
             <p class="nexora-kicker">Founder</p>
             <h2>Fatih Çetinkurt</h2>
+            <h3>Founder &amp; CEO — Nexora AI</h3>
             <div class="nexora-founder-facts">
               <span>Doğum Yılı: 2006</span>
               <span>Konum: Kahramanmaraş, Türkiye</span>
-              <span>Kurucu: Nexora AI</span>
+              <span>Girişimci &amp; Yazılım Geliştirici</span>
             </div>
-            <p>Fatih Çetinkurt, farklı sektörlerde markalar geliştiren ve işletmeler için yapay zeka destekli çözümler üreten genç bir girişimci ve yazılım geliştiricisidir.</p>
-            <p>Turizm, sağlık, CRM sistemleri, otomasyon çözümleri ve dijital dönüşüm alanlarında çalışmalar yürütmektedir.</p>
-            <p>Nexora AI çatısı altında TourFlow AI, Estemar Clinic AI, FM Travel, Çalışkan Turizm Demo gibi yapay zeka destekli sistemlerin yanında Artiza ve Freza by Artiza gibi marka projeleri üzerinde de çalışmaktadır.</p>
+            <p>Fatih Çetinkurt, 2006 yılında doğmuş genç bir girişimci ve yazılım geliştiricisidir.</p>
+            <p>Kahramanmaraş merkezli çalışmalar yürüten Fatih Çetinkurt; turizm teknolojileri, yapay zeka sistemleri, CRM çözümleri, sağlık teknolojileri, otomasyon sistemleri ve marka geliştirme alanlarında çalışmalar yürütmektedir.</p>
+            <p>Nexora AI çatısı altında TourFlow AI, Estemar Clinic AI, FM Travel ve Çalışkan Turizm Demo gibi dijital projelerin yanında Artiza ve Freza by Artiza markaları üzerinde de çalışmalarına devam etmektedir.</p>
+            <p>Vizyonu, farklı sektörlerde faaliyet gösteren işletmelere modern, ölçeklenebilir ve yapay zeka destekli sistemler sunarak dijital dönüşümlerine katkı sağlamaktır.</p>
           </div>
+        </section>
+
+        <section class="nexora-trust-strip">
+          <article><strong>6+ Proje</strong><span>Aktif sistem ve marka çalışması</span></article>
+          <article><strong>Turizm • Sağlık • Perakende</strong><span>Çok sektörlü deneyim</span></article>
+          <article><strong>AI Destekli Sistemler</strong><span>CRM, otomasyon ve raporlama</span></article>
+          <article><strong>Kahramanmaraş, Türkiye</strong><span>Yerelden globale ürün yaklaşımı</span></article>
+        </section>
+
+        <section class="nexora-collaborators">
+          <div class="nexora-section-head">
+            <p class="nexora-kicker">People</p>
+            <h2>Birlikte Çalıştığımız İnsanlar</h2>
+            <p>Destek verenler ve yol arkadaşları</p>
+          </div>
+          <article class="nexora-collab-card">
+            <div class="nexora-collab-photo"><span>Fotoğraf alanı</span></div>
+            <div>
+              <p class="nexora-kicker">Destekçi ve fikir ortağı</p>
+              <h3>Mahmut Can Usta</h3>
+              <p>Mahmut Can Usta, girişimcilik yolculuğunda fikir alışverişi yapılan, destek veren ve projeler üzerine birlikte düşünülen isimlerden biridir.</p>
+            </div>
+          </article>
         </section>
 
         <section class="nexora-vision">
@@ -1873,7 +1898,7 @@ function renderNexoraCommunity() {
           <div class="nexora-hero-copy">
             <p class="nexora-kicker">Community & Mentorship</p>
             <h1>Gençler İçin Yol Haritası</h1>
-            <p>Bir fikrin varsa, nereden başlayacağını bilmiyorsan veya kendi işini kurmak istiyorsan; burada fikir alabilir, projeni anlatabilir ve yol haritası oluşturabilirsin.</p>
+            <p>Bir fikrin varsa, nereden başlayacağını bilmiyorsan veya kendi işini kurmak istiyorsan; fikrini anlat, birlikte daha net, daha gerçekçi ve uygulanabilir bir yol haritası çıkaralım.</p>
             <div class="nexora-actions">
               <a class="nexora-primary" href="#idea-form">Fikrimi Paylaş</a>
               <a class="nexora-secondary" href="#story">Kuruluş Hikayesini Oku</a>
@@ -1892,12 +1917,14 @@ function renderNexoraCommunity() {
           <div class="nexora-story-grid">
             <article>
               <p>Fatih Çetinkurt, 2006 doğumlu genç bir girişimci olarak Kahramanmaraş’ta farklı iş fikirleri ve markalar üzerine çalışmaya başladı. İlk dönemlerde turizm, yerel markalar ve dijital projeler üzerinde denemeler yaptı. Artiza ile geleneksel el işçiliğini modern bir marka haline getirme fikrini geliştirdi. Freza by Artiza ile farklı bir gıda ve sunum konsepti üzerine düşündü.</p>
-              <p>Zamanla sadece marka kurmanın değil, işletmelerin ihtiyaç duyduğu sistemleri geliştirmenin de büyük bir fırsat olduğunu gördü. Bu düşünceyle TourFlow AI, FM Travel operasyon sistemi, Çalışkan Turizm Demo ve Estemar Clinic AI gibi projeler geliştirildi.</p>
-              <p>Nexora AI ise bu çalışmaların tek çatı altında toplandığı yapı olarak ortaya çıktı. Amaç; turizmden kliniğe, perakendeden hizmet sektörüne kadar farklı alanlarda işletmelere yapay zeka destekli sistemler sunmak.</p>
+              <p>Bu süreçte bir fikrin sadece isimden ibaret olmadığını; sunum, sistem, müşteri takibi, teklif akışı ve operasyon düzeniyle birlikte güçlendiğini gördü. Turizm tarafında FM Travel operasyon sistemi ve TourFlow AI, satış ve tur yönetimi için daha düzenli bir yapı kurma fikrinden doğdu.</p>
+              <p>Çalışkan Turizm Demo, bir markaya özel satış sunumunun nasıl hazırlanabileceğini gösteren ayrı bir örnek oldu. Estemar Clinic AI ise sağlık ve estetik alanında hasta talebi, randevu, ödeme, WhatsApp ve PDF evrak süreçlerinin tek panelde nasıl gösterilebileceğini ortaya koydu.</p>
+              <p>Artiza ve Freza by Artiza gibi marka projeleri, yazılım dışında marka dili, ürün sunumu ve girişim fikri geliştirme tarafını besledi. Nexora AI ise tüm bu çalışmaların tek çatı altında toplandığı yapı olarak ortaya çıktı. Amaç; turizmden kliniğe, perakendeden hizmet sektörüne kadar farklı alanlarda işletmelere yapay zeka destekli sistemler sunmak.</p>
             </article>
             <aside>
               <span>Nexora AI</span>
               <strong>Marka, yazılım ve operasyon sistemlerini aynı çatı altında düşünmek.</strong>
+              <p>Her proje, bir sonraki fikrin daha planlı ve daha uygulanabilir hale gelmesi için deneyim kazandırdı.</p>
             </aside>
           </div>
         </section>
@@ -1905,13 +1932,13 @@ function renderNexoraCommunity() {
         <section class="nexora-community-section">
           <p class="nexora-kicker">Support</p>
           <h2>Yol Arkadaşları ve İlk Destekler</h2>
-          <p>Bu süreçte çevresindeki insanların fikirleri, desteği ve güveni de önemli rol oynadı. Mahmut Can Usta, hem yakın çevreden gelen desteklerden biri hem de girişimcilik yolculuğunda fikir alışverişi yapılan kişilerden biri olarak bu hikayenin bir parçası oldu.</p>
+          <p>Bu süreçte çevresindeki insanların fikirleri, desteği ve güveni de önemli rol oynadı. Mahmut Can Usta, hem yakın çevreden gelen desteklerden biri hem de girişimcilik yolculuğunda fikir alışverişi yapılan kişilerden biri olarak bu hikayenin doğal bir parçası oldu. Projeler, fikirler ve yeni denemeler üzerine yapılan sohbetler bu yolculuğun daha sağlam ilerlemesine katkı sağladı.</p>
         </section>
 
         <section class="nexora-community-section">
           <p class="nexora-kicker">Message</p>
           <h2>Bir Fikrin Varsa Bekleme</h2>
-          <p>Nexora AI’ın amacı sadece işletmelere sistem geliştirmek değil; aynı zamanda gençlerin fikirlerini daha ciddi, daha planlı ve daha uygulanabilir hale getirmelerine yardımcı olmaktır.</p>
+          <p>Nexora AI’ın amacı sadece işletmelere sistem geliştirmek değil; aynı zamanda gençlerin fikirlerini daha ciddi, daha planlı ve daha uygulanabilir hale getirmelerine yardımcı olmaktır. Fikrini anlat; hangi problemi çözdüğünü, kimlere ulaşacağını ve ilk adımı nasıl atacağını birlikte sadeleştirelim.</p>
           <div class="nexora-support-grid">
             ${supportItems.map((item) => `<article><span>•</span><strong>${escapeHtml(item)}</strong></article>`).join("")}
           </div>
