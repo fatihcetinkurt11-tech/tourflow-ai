@@ -2021,6 +2021,185 @@ select:focus {
   line-height: 1.7;
 }
 
+.estemar-demo-shell {
+  background: #f6f9fc;
+  color: #102235;
+}
+
+.estemar-sidebar {
+  background: linear-gradient(180deg, #071b34 0%, #0d3558 56%, #08192c 100%);
+  border-right: 4px solid #8ecae6;
+  color: #ffffff;
+}
+
+.estemar-demo-shell .brand {
+  align-items: stretch;
+}
+
+.estemar-logo {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(190, 214, 232, 0.38);
+  border-radius: 8px;
+  display: grid;
+  gap: 7px;
+  padding: 15px;
+  width: 100%;
+}
+
+.estemar-logo strong {
+  color: #ffffff;
+  font-size: 24px;
+  letter-spacing: 0;
+}
+
+.estemar-logo small {
+  color: #dbeafe;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.4;
+}
+
+.estemar-ribbon {
+  background: rgba(142, 202, 230, 0.14);
+  border-color: rgba(142, 202, 230, 0.46);
+  color: #eaf6ff;
+}
+
+.estemar-demo-shell .nav-link.active,
+.estemar-demo-shell .nav-link:hover {
+  background: #8ecae6;
+  color: #071b34;
+}
+
+.estemar-content {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(246, 249, 252, 0.98)),
+    #f6f9fc;
+}
+
+.estemar-topbar {
+  background: linear-gradient(180deg, #ffffff, #f9fcff);
+  border: 1px solid #d8e5f0;
+  border-radius: 8px;
+  box-shadow: 0 18px 48px rgba(7, 27, 52, 0.09);
+  padding: 18px;
+}
+
+.estemar-topbar h1 {
+  color: #071b34;
+}
+
+.estemar-demo-shell .eyebrow,
+.estemar-demo-shell .stat-card strong {
+  color: #0f6e9f;
+}
+
+.estemar-demo-shell .panel,
+.estemar-demo-shell .tour-card,
+.estemar-demo-shell .item,
+.estemar-demo-shell .metric {
+  border-color: #d8e5f0;
+}
+
+.estemar-demo-shell .metric,
+.estemar-demo-shell .stat-card {
+  background: linear-gradient(180deg, #ffffff, #f8fbfe);
+}
+
+.estemar-demo-shell .btn {
+  background: #0f6e9f;
+  color: #ffffff;
+}
+
+.estemar-demo-shell .btn.secondary,
+.estemar-demo-shell .link-btn {
+  background: #ffffff;
+  border-color: rgba(15, 110, 159, 0.28);
+  color: #0b3554;
+}
+
+.estemar-demo-shell .badge.sky {
+  background: #dff3fb;
+  color: #075985;
+}
+
+.estemar-demo-shell .badge.green {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.estemar-demo-shell .badge.silver,
+.badge.silver {
+  background: #eef2f7;
+  color: #475569;
+}
+
+.procedure-grid,
+.gallery-grid {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  padding: 20px;
+}
+
+.procedure-card strong {
+  color: #071b34;
+  font-size: 20px;
+}
+
+.estemar-message-actions {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  padding: 20px;
+}
+
+.gallery-placeholder {
+  background: #ffffff;
+  border: 1px solid #d8e5f0;
+  border-radius: 8px;
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+}
+
+.gallery-placeholder div {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: 1fr 1fr;
+}
+
+.gallery-placeholder div span {
+  align-items: center;
+  aspect-ratio: 4 / 3;
+  background: linear-gradient(135deg, #eaf6ff, #f8fafc);
+  border: 1px dashed #a9c7dc;
+  border-radius: 8px;
+  color: #55708a;
+  display: flex;
+  font-size: 12px;
+  font-weight: 900;
+  justify-content: center;
+  text-transform: uppercase;
+}
+
+.clean-list {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding-left: 18px;
+}
+
+.estemar-about-panel p {
+  line-height: 1.7;
+}
+
+@media (max-width: 980px) {
+  .procedure-grid,
+  .gallery-grid,
+  .estemar-message-actions {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (max-width: 640px) {
   .auth-shell .auth-proof-grid {
     grid-template-columns: 1fr !important;
